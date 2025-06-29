@@ -1,0 +1,790 @@
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title">Data Identitas</h4>
+        <p class="card-text">Kelola data identitas pasien</p>
+    </div>
+    <div class="card-body">
+        <form id="identitasForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="nik" class="form-label">NIK</label>
+                        <input type="text" class="form-control" id="nik" name="nik">
+                    </div>
+                    <div class="mb-3">
+                        <label for="tahun" class="form-label">Tahun <span class="text-danger">*</span></label>
+                        <select class="form-control" id="tahun" name="tahun" required>
+                            <option value="">Pilih Tahun</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nama_ibu" class="form-label">Nama Ibu <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nama_ibu" name="nama_ibu" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nama_suami" class="form-label">Nama Suami</label>
+                        <input type="text" class="form-control" id="nama_suami" name="nama_suami">
+                    </div>
+                    <div class="mb-3">
+                        <label for="alamat" class="form-label">Alamat</label>
+                        <textarea class="form-control" id="alamat" name="alamat" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="sumber_pembiayaan" class="form-label">Sumber Pembiayaan</label>
+                        <select class="form-control" id="sumber_pembiayaan" name="sumber_pembiayaan">
+                            <option value="">Pilih Sumber Pembiayaan</option>
+                            <option value="BPJS">BPJS</option>
+                            <option value="Mandiri">Mandiri</option>
+                            <option value="Asuransi">Asuransi</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="no_pembiayaan" class="form-label">Nomor Pembiayaan</label>
+                        <input type="text" class="form-control" id="no_pembiayaan" name="no_pembiayaan">
+                    </div>
+                    <div class="mb-3">
+                        <label for="usia_ibu" class="form-label">Usia Ibu</label>
+                        <input type="number" class="form-control" id="usia_ibu" name="usia_ibu">
+                    </div>
+                    <div class="mb-3">
+                        <label for="dusun" class="form-label">Dusun</label>
+                        <input type="text" class="form-control" id="dusun" name="dusun">
+                    </div>
+                    <div class="mb-3">
+                        <label for="kabupaten" class="form-label">Kabupaten <span class="text-danger">*</span></label>
+                        <select class="form-control" id="kabupaten" name="kabupaten" required>
+                            <option value="">Pilih Kabupaten</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="kecamatan" class="form-label">Kecamatan <span class="text-danger">*</span></label>
+                        <select class="form-control" id="kecamatan" name="kecamatan" required>
+                            <option value="">Pilih Kecamatan</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="desa" class="form-label">Desa/Kelurahan <span class="text-danger">*</span></label>
+                        <select class="form-control" id="desa" name="desa" required>
+                            <option value="">Pilih Desa/Kelurahan</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-info" onclick="manualInitWilayah()">Init Wilayah</button>
+                <button type="button" class="btn btn-secondary" onclick="clearIdentitasForm()">Reset</button>
+                <button type="button" class="btn btn-primary" onclick="testFormSave()">Simpan Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title">Daftar Identitas</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped" id="identitasTable">
+                <thead>
+                    <tr>
+                        <th>NIK</th>
+                        <th>Tahun</th>
+                        <th>Nama Ibu</th>
+                        <th>Nama Suami</th>
+                        <th>Alamat</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="identitasTableBody">
+                    <!-- Data will be loaded here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function initIdentitas() {
+    console.log('=== initIdentitas called ===');
+    
+    const form = document.getElementById('identitasForm');
+    console.log('Form element found:', !!form);
+    
+    if (!form) {
+        console.error('Form element not found!');
+        return;
+    }
+    
+    // Load data after ensuring authentication
+    setTimeout(async () => {
+        try {
+            console.log('Attempting to load identitas data...');
+            await loadIdentitasData();
+        } catch (error) {
+            console.error('Error loading identitas data:', error);
+        }
+    }, 500); // Wait a bit for authentication to be ready
+    
+    // Initialize wilayah dropdowns after a short delay to ensure API is ready
+    setTimeout(async () => {
+        console.log('Attempting to initialize wilayah dropdowns...');
+        if (typeof initWilayahDropdowns === 'function') {
+            try {
+                await initWilayahDropdowns();
+                console.log('Wilayah dropdowns initialized successfully');
+            } catch (error) {
+                console.error('Error initializing wilayah dropdowns:', error);
+            }
+        } else {
+            console.error('initWilayahDropdowns function not available');
+        }
+    }, 1000); // Wait 1 second for API to be ready
+    
+    // Populate form from URL parameters if present
+    populateFormFromURL();
+    
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alert('Form submitted! Starting save process...');
+        console.log('Form submit event triggered');
+        await saveIdentitasData();
+    });
+    
+    console.log('Event listener attached to form');
+}
+
+function populateFormFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Map of URL parameters to form field IDs
+    const fieldMapping = {
+        'nik': 'nik',
+        'tahun': 'tahun',
+        'nama_ibu': 'nama_ibu',
+        'nama_suami': 'nama_suami',
+        'alamat': 'alamat',
+        'sumber_pembiayaan': 'sumber_pembiayaan',
+        'no_pembiayaan': 'no_pembiayaan',
+        'usia_ibu': 'usia_ibu',
+        'dusun': 'dusun',
+        'kabupaten': 'kabupaten',
+        'kecamatan': 'kecamatan',
+        'desa': 'desa'
+    };
+    
+    // Collect wilayah codes for dropdown population
+    const wilayahCodes = {
+        kabupaten: urlParams.get('kabupaten'),
+        kecamatan: urlParams.get('kecamatan'),
+        desa: urlParams.get('desa')
+    };
+    
+    // Populate form fields from URL parameters
+    Object.entries(fieldMapping).forEach(([param, fieldId]) => {
+        const value = urlParams.get(param);
+        if (value) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                // For wilayah dropdowns, we need to populate them specially
+                if (['kabupaten', 'kecamatan', 'desa'].includes(fieldId)) {
+                    // These will be handled by populateWilayahDropdowns
+                    console.log(`Wilayah field ${fieldId} will be populated with code:`, value);
+                } else {
+                    field.value = value;
+                    console.log(`Populated ${fieldId} with value:`, value);
+                }
+            }
+        }
+    });
+    
+    // Populate wilayah dropdowns if any codes are provided
+    if (wilayahCodes.kabupaten || wilayahCodes.kecamatan || wilayahCodes.desa) {
+        if (typeof populateWilayahDropdowns === 'function') {
+            populateWilayahDropdowns(wilayahCodes.kabupaten, wilayahCodes.kecamatan, wilayahCodes.desa);
+        } else {
+            console.error('populateWilayahDropdowns function not available');
+        }
+    }
+}
+
+function clearIdentitasForm() {
+    document.getElementById('identitasForm').reset();
+}
+
+async function saveIdentitasData() {
+    showLoading();
+    try {
+        console.log('=== Starting saveIdentitasData ===');
+        console.log('Current user ID:', currentUserId);
+        console.log('User profile:', userProfile);
+        console.log('Access token available:', !!accessToken);
+        
+        // Check if form exists
+        const form = document.getElementById('identitasForm');
+        if (!form) {
+            throw new Error('Form not found. Please refresh the page and try again.');
+        }
+        
+        // Ensure user is properly initialized
+        if (!currentUserId) {
+            console.log('User ID not set, initializing user...');
+            if (userProfile && userProfile.email) {
+                console.log('Creating/getting user for email:', userProfile.email);
+                await createOrGetUser(userProfile.email);
+                console.log('User initialization completed, currentUserId:', currentUserId);
+            } else {
+                console.error('No user profile available');
+                throw new Error('User not signed in properly. Please refresh and sign in again.');
+            }
+        }
+        
+        // Verify currentUserId is set after initialization
+        if (!currentUserId) {
+            throw new Error('Failed to initialize user. Please try signing out and signing in again.');
+        }
+        
+        // Helper function to safely get form field value with detailed logging
+        function getFieldValue(fieldId) {
+            console.log(`Attempting to get field: ${fieldId}`);
+            const field = document.getElementById(fieldId);
+            if (!field) {
+                console.error(`Field with id '${fieldId}' not found in DOM`);
+                console.log('Available form elements:', Array.from(document.querySelectorAll('input, select, textarea')).map(el => el.id));
+                throw new Error(`Form field '${fieldId}' not found. Please refresh the page.`);
+            }
+            const value = field.value || '';
+            console.log(`Field ${fieldId} value:`, value);
+            return value;
+        }
+        
+        // Get all field values with error handling
+        const fieldIds = ['nik', 'tahun', 'nama_ibu', 'nama_suami', 'alamat', 'sumber_pembiayaan', 'no_pembiayaan', 'usia_ibu', 'dusun', 'kabupaten', 'kecamatan', 'desa'];
+        const formData = [];
+        
+        for (const fieldId of fieldIds) {
+            try {
+                const value = getFieldValue(fieldId);
+                formData.push(value);
+            } catch (error) {
+                console.error(`Error getting field ${fieldId}:`, error);
+                throw error;
+            }
+        }
+        
+        // Add timestamp
+        formData.push(new Date().toISOString());
+        
+        console.log('Form data collected:', formData);
+        console.log('Current user ID before save:', currentUserId);
+        
+        // Validate that all required fields are filled
+        const requiredFields = formData.slice(0, -1); // Exclude timestamp
+        const emptyFields = [];
+        requiredFields.forEach((value, index) => {
+            if (!value || value.trim() === '') {
+                const fieldNames = ['NIK', 'Tahun', 'Nama Ibu', 'Nama Suami', 'Alamat', 'Sumber Pembiayaan', 'Nomor Pembiayaan', 'Usia Ibu', 'Dusun', 'Kabupaten', 'Kecamatan', 'Desa'];
+                emptyFields.push(fieldNames[index]);
+            }
+        });
+        
+        // Allow empty fields - just log which ones are empty for information
+        if (emptyFields.length > 0) {
+            console.log('Empty fields (allowed):', emptyFields.join(', '));
+        }
+        
+        // Check for duplicate data before saving
+        const tahun = formData[1];
+        const nama_ibu = formData[2];
+        const nama_suami = formData[3];
+        const desa = formData[11];
+        const kecamatan = formData[10];
+        
+        console.log('=== DUPLICATE CHECK CALL ===');
+        console.log('Checking for duplicates with fields:', { tahun, nama_ibu, nama_suami, desa, kecamatan });
+        console.log('Form data array:', formData);
+        console.log('Field indices - tahun[1]:', formData[1], 'nama_ibu[2]:', formData[2], 'nama_suami[3]:', formData[3], 'desa[11]:', formData[11], 'kecamatan[10]:', formData[10]);
+        
+        console.log('About to call checkIdentitasDuplicate...');
+        console.log('Function exists:', typeof checkIdentitasDuplicate);
+        
+        if (typeof checkIdentitasDuplicate !== 'function') {
+            console.error('checkIdentitasDuplicate function not found!');
+            throw new Error('Duplicate checking function not available. Please refresh the page.');
+        }
+        
+        const isDuplicate = await checkIdentitasDuplicate(tahun, nama_ibu, nama_suami, desa, kecamatan);
+        console.log('checkIdentitasDuplicate returned:', isDuplicate);
+        
+        if (isDuplicate) {
+            console.log('DUPLICATE DETECTED - throwing error');
+            throw new Error('Data dengan kombinasi Tahun, Nama Ibu, Nama Suami, Desa, dan Kecamatan yang sama sudah ada. Silakan cek data yang sudah tersimpan.');
+        }
+        
+        console.log('No duplicates found, proceeding with save...');
+        
+        console.log('Calling appendUserDataToSheet...');
+        await appendUserDataToSheet('Identitas', formData, true); // true indicates this is Identitas table
+        console.log('Data saved successfully!');
+        
+        alert('Data identitas berhasil disimpan!');
+        clearIdentitasForm();
+        loadIdentitasData();
+    } catch (error) {
+        console.error('=== Error saving identitas data ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        alert('Gagal menyimpan data: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function loadIdentitasData() {
+    try {
+        console.log('=== loadIdentitasData called ===');
+        console.log('Current user ID:', currentUserId);
+        console.log('Sheets initialized:', sheetsInitialized);
+        console.log('GAPI available:', !!gapi);
+        console.log('GAPI client available:', !!gapi?.client);
+        console.log('GAPI sheets available:', !!gapi?.client?.sheets);
+        
+        // Ensure user is properly authenticated
+        await ensureUserAuthenticated();
+        
+        console.log('About to call readUserDataFromSheet...');
+        const data = await readUserDataFromSheet('Identitas');
+        console.log('Data returned from readUserDataFromSheet:', data);
+        
+        const tableBody = document.getElementById('identitasTableBody');
+        console.log('Table body element found:', !!tableBody);
+        
+        if (!tableBody) {
+            console.error('Table body element not found!');
+            return;
+        }
+        
+        if (data && data.length > 0) {
+            console.log(`Rendering ${data.length} rows of data`);
+            tableBody.innerHTML = data.map((row, index) => {
+                console.log(`Row ${index}:`, row);
+                return `
+                <tr>
+                    <td>${row[0] || ''}</td>
+                    <td>${row[1] || ''}</td>
+                    <td>${row[2] || ''}</td>
+                    <td>${row[3] || ''}</td>
+                    <td>${row[4] || ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="deleteIdentitas('${row[row.length - 1]}')">
+                            Hapus
+                        </button>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+            console.log('Table HTML updated successfully');
+        } else {
+            console.log('No data found, showing empty message');
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Belum ada data identitas</td></tr>';
+        }
+    } catch (error) {
+        console.error('=== Error in loadIdentitasData ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        const tableBody = document.getElementById('identitasTableBody');
+        if (tableBody) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error loading data: ${error.message}</td></tr>`;
+        }
+    }
+}
+
+async function deleteIdentitas(relasiId) {
+    if (confirm('Apakah Anda yakin ingin menghapus data ini? Data terkait lainnya juga akan terhapus.')) {
+        try {
+            showLoading();
+            console.log('=== deleteIdentitas called ===');
+            console.log('Relasi ID to delete:', relasiId);
+            
+            // Ensure user is authenticated
+            await ensureUserAuthenticated();
+            
+            // Read all data from the Identitas sheet
+            const allData = await readFromSheet('Identitas!A:ZZ');
+            console.log('All data from Identitas sheet:', allData);
+            
+            if (!allData || allData.length <= 1) {
+                throw new Error('No data found in Identitas sheet');
+            }
+            
+            // Find the row index that contains the relasi ID
+            let rowIndexToDelete = -1;
+            for (let i = 1; i < allData.length; i++) { // Start from 1 to skip header
+                const row = allData[i];
+                const rowRelasiId = row[row.length - 1]; // Relasi ID is in the last column
+                console.log(`Row ${i} relasi ID:`, rowRelasiId);
+                
+                if (rowRelasiId === relasiId) {
+                    rowIndexToDelete = i + 1; // Google Sheets is 1-indexed
+                    console.log('Found row to delete at index:', rowIndexToDelete);
+                    break;
+                }
+            }
+            
+            if (rowIndexToDelete === -1) {
+                throw new Error('Data tidak ditemukan atau Anda tidak memiliki izin untuk menghapus data ini');
+            }
+            
+            // Alternative approach: Clear the row content instead of deleting the row
+            console.log('Clearing row at index:', rowIndexToDelete);
+            const range = `Identitas!A${rowIndexToDelete}:ZZ${rowIndexToDelete}`;
+            
+            const response = await gapi.client.sheets.spreadsheets.values.clear({
+                spreadsheetId: CONFIG.spreadsheetId,
+                range: range
+            });
+            
+            console.log('Clear response:', response.result);
+            
+            // Also clear the corresponding relasi record
+            await clearRelasiRecord(relasiId);
+            
+            alert('Data berhasil dihapus!');
+            
+            // Reload the data table
+            await loadIdentitasData();
+            
+        } catch (error) {
+            console.error('=== Error in deleteIdentitas ===');
+            console.error('Error:', error);
+            console.error('Error message:', error.message);
+            alert('Gagal menghapus data: ' + error.message);
+        } finally {
+            hideLoading();
+        }
+    }
+}
+
+// Helper function to clear relasi record
+async function clearRelasiRecord(relasiId) {
+    try {
+        console.log('Clearing relasi record with ID:', relasiId);
+        
+        // Read all relasi data
+        const allRelasiData = await readFromSheet('Relasi!A:ZZ');
+        console.log('All relasi data:', allRelasiData);
+        
+        if (!allRelasiData || allRelasiData.length <= 1) {
+            console.log('No relasi data found');
+            return;
+        }
+        
+        // Find the relasi record to clear
+        let rowIndexToClear = -1;
+        for (let i = 1; i < allRelasiData.length; i++) {
+            const row = allRelasiData[i];
+            const rowRelasiId = row[0]; // Relasi ID is in the first column
+            console.log(`Relasi row ${i} ID:`, rowRelasiId);
+            
+            if (rowRelasiId === relasiId) {
+                rowIndexToClear = i + 1; // Google Sheets is 1-indexed
+                console.log('Found relasi row to clear at index:', rowIndexToClear);
+                break;
+            }
+        }
+        
+        if (rowIndexToClear === -1) {
+            console.log('Relasi record not found, skipping clearing');
+            return;
+        }
+        
+        // Clear the relasi record
+        const range = `Relasi!A${rowIndexToClear}:ZZ${rowIndexToClear}`;
+        const response = await gapi.client.sheets.spreadsheets.values.clear({
+            spreadsheetId: CONFIG.spreadsheetId,
+            range: range
+        });
+        
+        console.log('Relasi clear response:', response.result);
+        
+    } catch (error) {
+        console.error('Error clearing relasi record:', error);
+        // Don't throw error here as the main deletion was successful
+    }
+}
+
+function editIdentitas(relasiId) {
+    // Set the current relasi ID for editing
+    currentRelasiId = relasiId;
+    alert('Fitur edit sedang dalam pengembangan');
+}
+
+// Auto-initialize when script loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initIdentitas);
+} else {
+    initIdentitas();
+}
+
+// Make functions globally available
+window.deleteIdentitas = deleteIdentitas;
+window.clearRelasiRecord = clearRelasiRecord;
+window.editIdentitas = editIdentitas;
+window.initIdentitas = initIdentitas;
+window.loadIdentitasData = loadIdentitasData;
+window.saveIdentitasData = saveIdentitasData;
+window.clearIdentitasForm = clearIdentitasForm;
+window.testFormSave = testFormSave;
+window.ensureUserAuthenticated = ensureUserAuthenticated;
+window.populateFormFromURL = populateFormFromURL;
+
+// Direct form submission handler - this will work immediately
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up form handler');
+    const form = document.getElementById('identitasForm');
+    if (form) {
+        console.log('Form found, setting up direct handler');
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            console.log('Form submitted via direct handler');
+            alert('Form submitted! Starting save process...');
+            await saveIdentitasData();
+        });
+        console.log('Direct form handler attached');
+    } else {
+        console.log('Form not found on DOM load');
+    }
+});
+
+// Mutation observer to handle dynamic content loading
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) { // Element node
+                    const form = node.querySelector ? node.querySelector('#identitasForm') : null;
+                    if (form) {
+                        console.log('Form found via mutation observer, setting up handler');
+                        form.addEventListener('submit', async function(e) {
+                            e.preventDefault();
+                            console.log('Form submitted via mutation observer handler');
+                            alert('Form submitted! Starting save process...');
+                            await saveIdentitasData();
+                        });
+                        console.log('Mutation observer form handler attached');
+                    }
+                }
+            });
+        }
+    });
+});
+
+// Start observing
+observer.observe(document.body, {
+    childList: true,
+    subtree: true
+});
+
+// Manual initialization function for testing
+function manualInit() {
+    console.log('Manual init called');
+    initIdentitas();
+}
+
+// Test function for debugging data loading
+async function testLoadData() {
+    console.log('=== testLoadData called ===');
+    try {
+        console.log('Testing data loading...');
+        await loadIdentitasData();
+        console.log('Data loading test completed');
+    } catch (error) {
+        console.error('Test load data failed:', error);
+        alert('Test failed: ' + error.message);
+    }
+}
+
+// Test function for form save
+async function testFormSave() {
+    console.log('=== testFormSave called ===');
+    try {
+        console.log('Testing form save...');
+        await saveIdentitasData();
+        console.log('Form save test completed');
+    } catch (error) {
+        console.error('Test form save failed:', error);
+        alert('Test failed: ' + error.message);
+    }
+}
+
+// Test function for debugging authentication
+async function testAuth() {
+    console.log('=== testAuth called ===');
+    try {
+        console.log('Testing authentication...');
+        const userId = await ensureUserAuthenticated();
+        console.log('Authentication test successful, userId:', userId);
+        alert('Authentication test successful! User ID: ' + userId);
+    } catch (error) {
+        console.error('Authentication test failed:', error);
+        alert('Authentication test failed: ' + error.message);
+    }
+}
+
+// Function to refresh data table
+async function refreshData() {
+    console.log('=== refreshData called ===');
+    try {
+        console.log('Refreshing data table...');
+        await loadIdentitasData();
+        console.log('Data table refreshed successfully');
+        alert('Data table refreshed successfully!');
+    } catch (error) {
+        console.error('Error refreshing data:', error);
+        alert('Error refreshing data: ' + error.message);
+    }
+}
+
+// Comprehensive test function to debug all issues
+async function comprehensiveTest() {
+    console.log('=== comprehensiveTest called ===');
+    
+    try {
+        // Test 1: Check basic environment
+        console.log('Test 1: Basic environment check');
+        console.log('- Sheets initialized:', sheetsInitialized);
+        console.log('- GAPI available:', !!gapi);
+        console.log('- GAPI client available:', !!gapi?.client);
+        console.log('- GAPI sheets available:', !!gapi?.client?.sheets);
+        console.log('- Access token available:', !!accessToken);
+        console.log('- User profile available:', !!userProfile);
+        console.log('- Current user ID:', currentUserId);
+        
+        // Test 2: Check authentication
+        console.log('Test 2: Authentication check');
+        const userId = await ensureUserAuthenticated();
+        console.log('- Authentication successful, userId:', userId);
+        
+        // Test 3: Check table element
+        console.log('Test 3: Table element check');
+        const tableBody = document.getElementById('identitasTableBody');
+        console.log('- Table body found:', !!tableBody);
+        
+        // Test 4: Test direct sheet reading
+        console.log('Test 4: Direct sheet reading test');
+        try {
+            const allData = await readFromSheet('Identitas!A:ZZ');
+            console.log('- All data from sheet:', allData);
+            console.log('- Number of rows:', allData ? allData.length : 0);
+            
+            // Show first few rows for debugging
+            if (allData && allData.length > 0) {
+                console.log('- First row (headers):', allData[0]);
+                if (allData.length > 1) {
+                    console.log('- Second row (first data):', allData[1]);
+                }
+            }
+        } catch (error) {
+            console.error('- Error reading sheet directly:', error);
+        }
+        
+        // Test 5: Test user-specific data reading
+        console.log('Test 5: User-specific data reading test');
+        try {
+            const userData = await readUserDataFromSheet('Identitas');
+            console.log('- User-specific data:', userData);
+            console.log('- Number of user rows:', userData ? userData.length : 0);
+        } catch (error) {
+            console.error('- Error reading user data:', error);
+        }
+        
+        // Test 6: Test relasi records
+        console.log('Test 6: Relasi records test');
+        try {
+            const relasiRecords = await getUserRelasiRecords();
+            console.log('- User relasi records:', relasiRecords);
+            console.log('- Number of relasi records:', relasiRecords ? relasiRecords.length : 0);
+        } catch (error) {
+            console.error('- Error getting relasi records:', error);
+        }
+        
+        console.log('Comprehensive test completed successfully!');
+        alert('Comprehensive test completed! Check console for detailed results.');
+        
+    } catch (error) {
+        console.error('Comprehensive test failed:', error);
+        alert('Comprehensive test failed: ' + error.message);
+    }
+}
+
+// Function to ensure user is properly authenticated before loading data
+async function ensureUserAuthenticated() {
+    console.log('=== ensureUserAuthenticated called ===');
+    console.log('Current user ID:', currentUserId);
+    console.log('User profile:', userProfile);
+    console.log('Access token:', !!accessToken);
+    
+    if (!currentUserId) {
+        console.log('No current user ID, attempting to initialize user...');
+        
+        if (userProfile && userProfile.email) {
+            try {
+                console.log('Creating/getting user for email:', userProfile.email);
+                await createOrGetUser(userProfile.email);
+                console.log('User initialization completed, currentUserId:', currentUserId);
+            } catch (error) {
+                console.error('Error initializing user:', error);
+                throw new Error('Failed to initialize user. Please try signing out and signing in again.');
+            }
+        } else {
+            console.error('No user profile available');
+            throw new Error('User not signed in properly. Please refresh and sign in again.');
+        }
+    }
+    
+    if (!currentUserId) {
+        throw new Error('Failed to initialize user. Please try signing out and signing in again.');
+    }
+    
+    console.log('User authentication verified, currentUserId:', currentUserId);
+    return currentUserId;
+}
+
+// Add simple test function
+async function testSimpleAppend() {
+    try {
+        console.log('=== Testing simple append ===');
+        console.log('Sheets initialized:', sheetsInitialized);
+        console.log('GAPI available:', !!gapi);
+        console.log('GAPI client available:', !!gapi?.client);
+        console.log('GAPI sheets available:', !!gapi?.client?.sheets);
+        
+        const testData = [['Test', '123', 'Simple Test', new Date().toISOString()]];
+        
+        console.log('Attempting to append test data:', testData);
+        const result = await gapi.client.sheets.spreadsheets.values.append({
+            spreadsheetId: CONFIG.spreadsheetId,
+            range: 'Identitas!A:ZZ',
+            valueInputOption: 'RAW',
+            insertDataOption: 'INSERT_ROWS',
+            resource: {
+                values: testData
+            }
+        });
+        
+        console.log('Simple append successful:', result);
+        alert('Simple test successful! Check console for details.');
+        
+    } catch (error) {
+        console.error('Simple test failed:', error);
+        alert('Simple test failed: ' + error.message);
+    }
+}
+</script> 

@@ -1,0 +1,199 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Data ANC (Antenatal Care)</h4>
+                <p class="card-text">Kelola data pemeriksaan antenatal</p>
+            </div>
+            <div class="card-body">
+                <form id="ancForm">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="selected_mother_anc" class="form-label">Pilih Nama Ibu</label>
+                                <div class="input-group">
+                                    <select class="form-control" id="selected_mother_anc" required>
+                                        <option value="">Pilih Nama Ibu dari Data Identitas</option>
+                                    </select>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="refreshMotherNamesAnc()">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Pilih nama ibu yang sudah terdaftar di data identitas</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tgl_anc" class="form-label">Tanggal ANC</label>
+                                <input type="date" class="form-control" id="tgl_anc" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="kunjungan" class="form-label">Kunjungan ke-</label>
+                                <input type="number" class="form-control" id="kunjungan" min="1" max="20">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="bb" class="form-label">Berat Badan (kg)</label>
+                                <input type="number" class="form-control" id="bb" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tb" class="form-label">Tinggi Badan (cm)</label>
+                                <input type="number" class="form-control" id="tb" step="0.1">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="td" class="form-label">Tekanan Darah</label>
+                                <input type="text" class="form-control" id="td" placeholder="120/80">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="uk" class="form-label">Usia Kehamilan (minggu)</label>
+                                <input type="number" class="form-control" id="uk" min="1" max="42">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="djj" class="form-label">Denyut Jantung Janin (bpm)</label>
+                                <input type="number" class="form-control" id="djj" min="110" max="160">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tfu" class="form-label">Tinggi Fundus Uteri (cm)</label>
+                                <input type="number" class="form-control" id="tfu" step="0.1">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="fetal_station" class="form-label">Fetal Station</label>
+                                <select class="form-control" id="fetal_station">
+                                    <option value="">Pilih Fetal Station</option>
+                                    <option value="-3">-3 (Kepala belum masuk PAP)</option>
+                                    <option value="-2">-2 (Kepala di atas PAP)</option>
+                                    <option value="-1">-1 (Kepala di PAP)</option>
+                                    <option value="0">0 (Kepala sejajar PAP)</option>
+                                    <option value="+1">+1 (Kepala 1 cm di bawah PAP)</option>
+                                    <option value="+2">+2 (Kepala 2 cm di bawah PAP)</option>
+                                    <option value="+3">+3 (Kepala 3 cm di bawah PAP)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-primary" onclick="saveAncData()">Simpan Data</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearAncForm()">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Riwayat Kunjungan ANC</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="ancTable">
+                        <thead>
+                            <tr>
+                                <th>Tanggal ANC</th>
+                                <th>BB (kg)</th>
+                                <th>TB (cm)</th>
+                                <th>TD</th>
+                                <th>UK (minggu)</th>
+                                <th>DJJ (bpm)</th>
+                                <th>TFU (cm)</th>
+                                <th>Fetal Station</th>
+                                <th>Kunjungan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ancTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function initAnc() {
+    console.log('Initializing ANC module...');
+    
+    // Test if required functions are available
+    console.log('Testing ANC function availability:');
+    console.log('loadMotherNamesAnc:', typeof loadMotherNamesAnc);
+    console.log('getSelectedMotherRelasiRecordAnc:', typeof getSelectedMotherRelasiRecordAnc);
+    console.log('refreshMotherNamesAnc:', typeof refreshMotherNamesAnc);
+    console.log('appendToSheet:', typeof appendToSheet);
+    console.log('showLoading:', typeof showLoading);
+    console.log('hideLoading:', typeof hideLoading);
+    console.log('loadAncData:', typeof loadAncData);
+    
+    // Load mother names from identitas data
+    if (typeof loadMotherNamesAnc === 'function') {
+        loadMotherNamesAnc();
+    } else {
+        console.error('loadMotherNamesAnc function not available');
+    }
+    
+    // Load ANC data using the unified function from main.js
+    if (typeof loadAncData === 'function') {
+        loadAncData();
+    } else {
+        console.error('loadAncData function not available');
+    }
+    
+    document.getElementById('ancForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveAncData();
+    });
+    
+    console.log('ANC module initialized successfully');
+}
+
+function clearAncForm() {
+    document.getElementById('ancForm').reset();
+    // Reset mother selection to first option
+    const motherSelect = document.getElementById('selected_mother_anc');
+    if (motherSelect) {
+        motherSelect.selectedIndex = 0;
+    }
+}
+
+// Make functions globally available
+window.initAnc = initAnc;
+window.clearAncForm = clearAncForm;
+window.loadAncData = loadAncData;
+window.deleteAnc = deleteAnc;
+
+// Auto-initialize when script loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnc);
+} else {
+    initAnc();
+}
+</script> 

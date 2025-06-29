@@ -1,0 +1,262 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Data Laboratorium</h4>
+                <p class="card-text">Kelola hasil pemeriksaan laboratorium</p>
+            </div>
+            <div class="card-body">
+                <form id="laboratoriumForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="lab_hb" class="form-label">Lab HB (g/dL)</label>
+                                <input type="number" class="form-control" id="lab_hb" step="0.1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="golda" class="form-label">Golongan Darah</label>
+                                <select class="form-control" id="golda" required>
+                                    <option value="">Pilih Golongan Darah</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="AB">AB</option>
+                                    <option value="O">O</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="protein_urin" class="form-label">Protein Urin</label>
+                                <select class="form-control" id="protein_urin" required>
+                                    <option value="">Pilih Hasil</option>
+                                    <option value="negatif">Negatif</option>
+                                    <option value="trace">Trace</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+2">+2</option>
+                                    <option value="+3">+3</option>
+                                    <option value="+4">+4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="glukosa_urin" class="form-label">Glukosa Urin</label>
+                                <select class="form-control" id="glukosa_urin" required>
+                                    <option value="">Pilih Hasil</option>
+                                    <option value="negatif">Negatif</option>
+                                    <option value="trace">Trace</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+2">+2</option>
+                                    <option value="+3">+3</option>
+                                    <option value="+4">+4</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="hiv" class="form-label">HIV</label>
+                                <select class="form-control" id="hiv" required>
+                                    <option value="">Pilih Hasil</option>
+                                    <option value="reaktif">Reaktif</option>
+                                    <option value="non_reaktif">Non Reaktif</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="sifilis" class="form-label">Sifilis</label>
+                                <select class="form-control" id="sifilis" required>
+                                    <option value="">Pilih Hasil</option>
+                                    <option value="reaktif">Reaktif</option>
+                                    <option value="non_reaktif">Non Reaktif</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="hbsag" class="form-label">HBsAg</label>
+                                <select class="form-control" id="hbsag" required>
+                                    <option value="">Pilih Hasil</option>
+                                    <option value="reaktif">Reaktif</option>
+                                    <option value="non_reaktif">Non Reaktif</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tbc_mikroskopis" class="form-label">TBC Mikroskopis</label>
+                                <select class="form-control" id="tbc_mikroskopis" required>
+                                    <option value="">Pilih Hasil</option>
+                                    <option value="positif">Positif</option>
+                                    <option value="negatif">Negatif</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="malaria" class="form-label">Malaria</label>
+                                <select class="form-control" id="malaria" required>
+                                    <option value="">Pilih Hasil</option>
+                                    <option value="positif">Positif</option>
+                                    <option value="negatif">Negatif</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="lain_lain" class="form-label">Lain-lain</label>
+                        <textarea class="form-control" id="lain_lain" rows="3" placeholder="Catatan pemeriksaan laboratorium lainnya"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-primary" onclick="saveLaboratoriumData()">Simpan Data</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearLabForm()">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Riwayat Laboratorium</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="laboratoriumTable">
+                        <thead>
+                            <tr>
+                                <th>Lab HB</th>
+                                <th>Golongan Darah</th>
+                                <th>Protein Urin</th>
+                                <th>Glukosa Urin</th>
+                                <th>HIV</th>
+                                <th>Sifilis</th>
+                                <th>HBsAg</th>
+                                <th>TBC Mikroskopis</th>
+                                <th>Malaria</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="laboratoriumTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function initLaboratorium() {
+    loadLaboratoriumData();
+    
+    document.getElementById('laboratoriumForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveLaboratoriumData();
+    });
+}
+
+function clearLabForm() {
+    document.getElementById('laboratoriumForm').reset();
+}
+
+async function saveLaboratoriumData() {
+    showLoading();
+    try {
+        // Ensure user is properly initialized
+        if (!currentUserId) {
+            console.log('User ID not set, initializing user...');
+            if (userProfile && userProfile.email) {
+                await createOrGetUser(userProfile.email);
+            } else {
+                throw new Error('User not signed in properly. Please refresh and sign in again.');
+            }
+        }
+        
+        const formData = [
+            document.getElementById('lab_hb').value,
+            document.getElementById('golda').value,
+            document.getElementById('protein_urin').value,
+            document.getElementById('glukosa_urin').value,
+            document.getElementById('hiv').value,
+            document.getElementById('sifilis').value,
+            document.getElementById('hbsag').value,
+            document.getElementById('tbc_mikroskopis').value,
+            document.getElementById('malaria').value,
+            document.getElementById('lain_lain').value,
+            new Date().toISOString()
+        ];
+        
+        await appendUserDataToSheet('Laboratorium', formData);
+        alert('Data laboratorium berhasil disimpan!');
+        clearLabForm();
+        loadLaboratoriumData();
+    } catch (error) {
+        console.error('Error saving data:', error);
+        alert('Gagal menyimpan data: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function loadLaboratoriumData() {
+    try {
+        const data = await readUserDataFromSheet('Laboratorium');
+        const tableBody = document.getElementById('laboratoriumTableBody');
+        
+        if (data && data.length > 0) {
+            tableBody.innerHTML = data.map((row, index) => `
+                <tr>
+                    <td>${row[0] || ''}</td>
+                    <td>${row[1] || ''}</td>
+                    <td>${row[2] || ''}</td>
+                    <td>${row[3] || ''}</td>
+                    <td>${row[4] || ''}</td>
+                    <td>${row[5] || ''}</td>
+                    <td>${row[6] || ''}</td>
+                    <td>${row[7] || ''}</td>
+                    <td>${row[8] || ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="deleteLaboratorium(${index + 2})">
+                            Hapus
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tableBody.innerHTML = '<tr><td colspan="10" class="text-center">Belum ada data laboratorium</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading data:', error);
+    }
+}
+
+async function deleteLaboratorium(rowIndex) {
+    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+        try {
+            await writeToSheet(`laboratorium!A${rowIndex}:M${rowIndex}`, [['', '', '', '', '', '', '', '', '', '', '', '', '']]);
+            loadLaboratoriumData();
+        } catch (error) {
+            console.error('Error deleting data:', error);
+            alert('Gagal menghapus data: ' + error.message);
+        }
+    }
+}
+</script> 

@@ -1,0 +1,113 @@
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5></h5>
+            <p></p>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Statistik Data</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 id="totalIdentitas">0</h4>
+                            <small>Identitas</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 id="totalPemeriksaan">0</h4>
+                            <small>Pemeriksaan</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 id="totalLaboratorium">0</h4>
+                            <small>Laboratorium</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 id="totalPersalinan">0</h4>
+                            <small>Persalinan</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 id="totalNifas">0</h4>
+                            <small>Nifas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">User Session Info</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>Current User ID:</strong><br>
+                        <code id="currentUserIdDisplay">-</code>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Current Email:</strong><br>
+                        <code id="currentEmailDisplay">-</code>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Current Relasi ID:</strong><br>
+                        <code id="currentRelasiIdDisplay">-</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function initStatistik() {
+    loadStatistics();
+}
+
+async function loadStatistics() {
+    try {
+        const tables = ['Identitas', 'Pemeriksaan', 'Laboratorium', 'Persalinan', 'Nifas'];
+        for (const table of tables) {
+            try {
+                const data = await readFromSheet(`${table}!A:ZZ`);
+                const count = data && data.length > 1 ? data.length - 1 : 0;
+                document.getElementById(`total${table.charAt(0).toUpperCase() + table.slice(1)}`).textContent = count;
+            } catch (error) {
+                console.error(`Error loading ${table} statistics:`, error);
+                document.getElementById(`total${table.charAt(0).toUpperCase() + table.slice(1)}`).textContent = 'Error';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading statistics:', error);
+    }
+}
+
+// Auto-initialize when script loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStatistik);
+} else {
+    initStatistik();
+}
+</script> 

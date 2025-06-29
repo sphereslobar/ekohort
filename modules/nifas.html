@@ -1,0 +1,245 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Data Nifas</h4>
+                <p class="card-text">Kelola data pemeriksaan masa nifas</p>
+            </div>
+            <div class="card-body">
+                <form id="nifasForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tanggal_nifas" class="form-label">Tanggal Pemeriksaan</label>
+                                <input type="date" class="form-control" id="tanggal_nifas" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="hari_ke" class="form-label">Hari ke- (post partum)</label>
+                                <input type="number" class="form-control" id="hari_ke" min="1" max="42">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tinggi_fundus_nifas" class="form-label">Tinggi Fundus (cm)</label>
+                                <input type="number" class="form-control" id="tinggi_fundus_nifas" step="0.1">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tekanan_darah_nifas" class="form-label">Tekanan Darah</label>
+                                <input type="text" class="form-control" id="tekanan_darah_nifas" placeholder="120/80">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="suhu_badan" class="form-label">Suhu Badan (°C)</label>
+                                <input type="number" class="form-control" id="suhu_badan" step="0.1" min="35" max="42">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="lochea" class="form-label">Lochea</label>
+                                <select class="form-control" id="lochea">
+                                    <option value="">Pilih Lochea</option>
+                                    <option value="rubra">Rubra (merah)</option>
+                                    <option value="serosa">Serosa (kecoklatan)</option>
+                                    <option value="alba">Alba (putih/kuning)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="asi" class="form-label">ASI</label>
+                                <select class="form-control" id="asi">
+                                    <option value="">-</option>
+                                    <option value="lancar">Lancar</option>
+                                    <option value="tidak_lancar">Tidak Lancar</option>
+                                    <option value="belum_keluar">Belum Keluar</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="kondisi_perineum" class="form-label">Kondisi Perineum</label>
+                                <select class="form-control" id="kondisi_perineum">
+                                    <option value="">-</option>
+                                    <option value="utuh">Utuh</option>
+                                    <option value="robekan_grade_1">Robekan Grade 1</option>
+                                    <option value="robekan_grade_2">Robekan Grade 2</option>
+                                    <option value="robekan_grade_3">Robekan Grade 3</option>
+                                    <option value="episiotomi">Episiotomi</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="eliminasi" class="form-label">Eliminasi</label>
+                                <select class="form-control" id="eliminasi">
+                                    <option value="">-</option>
+                                    <option value="bab_bak_normal">BAB & BAK Normal</option>
+                                    <option value="bab_belum">BAB Belum</option>
+                                    <option value="bak_belum">BAK Belum</option>
+                                    <option value="keduanya_belum">Keduanya Belum</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="keluhan_nifas" class="form-label">Keluhan</label>
+                        <textarea class="form-control" id="keluhan_nifas" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="penatalaksanaan" class="form-label">Penatalaksanaan</label>
+                        <textarea class="form-control" id="penatalaksanaan" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-primary" onclick="saveNifasData()">Simpan Data</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearNifasForm()">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Riwayat Pemeriksaan Nifas</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="nifasTable">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Hari ke-</th>
+                                <th>TFU</th>
+                                <th>TD</th>
+                                <th>Suhu</th>
+                                <th>Lochea</th>
+                                <th>ASI</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nifasTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function initNifas() {
+    loadNifasData();
+    
+    document.getElementById('nifasForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveNifasData();
+    });
+}
+
+function clearNifasForm() {
+    document.getElementById('nifasForm').reset();
+}
+
+async function saveNifasData() {
+    showLoading();
+    try {
+        // Ensure user is properly initialized
+        if (!currentUserId) {
+            console.log('User ID not set, initializing user...');
+            if (userProfile && userProfile.email) {
+                await createOrGetUser(userProfile.email);
+            } else {
+                throw new Error('User not signed in properly. Please refresh and sign in again.');
+            }
+        }
+        
+        const formData = [
+            document.getElementById('tanggal_nifas').value,
+            document.getElementById('hari_ke').value,
+            document.getElementById('tinggi_fundus_nifas').value,
+            document.getElementById('tekanan_darah_nifas').value,
+            document.getElementById('suhu_badan').value,
+            document.getElementById('lochea').value,
+            document.getElementById('asi').value,
+            document.getElementById('kondisi_perineum').value,
+            document.getElementById('eliminasi').value,
+            document.getElementById('keluhan_nifas').value,
+            document.getElementById('penatalaksanaan').value,
+            new Date().toISOString()
+        ];
+        
+        await appendUserDataToSheet('Nifas', formData);
+        alert('Data nifas berhasil disimpan!');
+        clearNifasForm();
+        loadNifasData();
+    } catch (error) {
+        console.error('Error saving data:', error);
+        alert('Gagal menyimpan data: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function loadNifasData() {
+    try {
+        const data = await readUserDataFromSheet('Nifas');
+        const tableBody = document.getElementById('nifasTableBody');
+        
+        if (data && data.length > 0) {
+            tableBody.innerHTML = data.map((row, index) => `
+                <tr>
+                    <td>${row[0] || ''}</td>
+                    <td>${row[1] || ''}</td>
+                    <td>${row[2] || ''}</td>
+                    <td>${row[3] || ''}</td>
+                    <td>${row[4] || ''}°C</td>
+                    <td>${row[5] || ''}</td>
+                    <td>${row[6] || ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="deleteNifas(${index + 2})">
+                            Hapus
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Belum ada data nifas</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading data:', error);
+    }
+}
+
+async function deleteNifas(rowIndex) {
+    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+        try {
+            await writeToSheet(`nifas!A${rowIndex}:L${rowIndex}`, [['', '', '', '', '', '', '', '', '', '', '', '']]);
+            loadNifasData();
+        } catch (error) {
+            console.error('Error deleting data:', error);
+            alert('Gagal menghapus data: ' + error.message);
+        }
+    }
+}
+</script> 

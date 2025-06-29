@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eKohort - Maternal Health Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Remove the old meta tag -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">eKohort</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadModule('home')">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadModule('identitas')">Identitas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadModule('pemeriksaan')">Pemeriksaan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadModule('anc')">ANC</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadModule('admin')">Stats</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item" id="loginButton">
+                        <div id="g_id_onload"
+                             data-client_id="1040492034608-klt6crk38lpo8vt9hpqauer57tsn78sb.apps.googleusercontent.com"
+                             data-context="signin"
+                             data-ux_mode="popup"
+                             data-callback="handleCredentialResponse"
+                             data-auto_prompt="false">
+                        </div>
+                        <div class="g_id_signin"
+                             data-type="standard"
+                             data-shape="rectangular"
+                             data-theme="outline"
+                             data-text="signin_with"
+                             data-size="large"
+                             data-logo_alignment="left">
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div id="mainContent">
+            <!-- Content will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="loadingSpinner" class="spinner-overlay d-none">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/sheets-api.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let tokenClient;
+        let accessToken = null;
+        let userProfile = null;
+
+        // Check for saved session on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const savedToken = localStorage.getItem('googleAccessToken');
+            const savedProfile = localStorage.getItem('userProfile');
+            
+            if (savedToken && savedProfile) {
+                accessToken = savedToken;
+                userProfile = JSON.parse(savedProfile);
+                updateUIForSignedInUser();
+                await initializeGapiClient();
+                
+                // Initialize user from saved session
+                try {
+                    await createOrGetUser(userProfile.email);
+                    console.log('User restored from session');
+                } catch (error) {
+                    console.error('Error restoring user session:', error);
+                }
+            }
+        });
+
+        function handleCredentialResponse(response) {
+            if (response.credential) {
+                // Decode the JWT token to get user info
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                userProfile = {
+                    name: payload.name,
+                    email: payload.email,
+                    picture: payload.picture
+                };
+                
+                // Get access token for API calls
+                getAccessToken();
+            }
+        }
+
+        function getAccessToken() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: '1040492034608-klt6crk38lpo8vt9hpqauer57tsn78sb.apps.googleusercontent.com',
+                scope: 'https://www.googleapis.com/auth/spreadsheets',
+                callback: async (response) => {
+                    if (response.access_token) {
+                        accessToken = response.access_token;
+                        
+                        // Save to localStorage
+                        localStorage.setItem('googleAccessToken', accessToken);
+                        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                        
+                        updateUIForSignedInUser();
+                        await initializeGapiClient();
+                        
+                        // Create or get user in the database
+                        try {
+                            await createOrGetUser(userProfile.email);
+                            console.log('User initialized successfully');
+                        } catch (error) {
+                            console.error('Error initializing user:', error);
+                        }
+                    }
+                }
+            });
+            tokenClient.requestAccessToken();
+        }
+
+        function updateUIForSignedInUser() {
+            if (userProfile) {
+                document.getElementById('loginButton').innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <img src="${userProfile.picture}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+                        <span class="text-white me-2">${userProfile.name}</span>
+                        <button class="btn btn-outline-light btn-sm" onclick="signOut()">Logout</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function initializeGapiClient() {
+            try {
+                // Load the Google API client
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://apis.google.com/js/api.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.body.appendChild(script);
+                });
+
+                // Initialize GAPI client
+                await new Promise((resolve) => gapi.load('client', resolve));
+                await gapi.client.init({
+                    apiKey: CONFIG.apiKey,
+                    discoveryDocs: CONFIG.discoveryDocs,
+                });
+
+                // Set the access token
+                gapi.client.setToken({
+                    access_token: accessToken
+                });
+
+                // Load the Sheets API
+                await gapi.client.load('sheets', 'v4');
+                
+                console.log('Google API client initialized');
+                
+                // Dispatch the gapiLoaded event first
+                document.dispatchEvent(new Event('gapiLoaded'));
+                
+                // Setup required sheets after a small delay to ensure everything is ready
+                setTimeout(async () => {
+                    try {
+                        await setupRequiredSheets();
+                        console.log('Required sheets setup completed');
+                    } catch (error) {
+                        console.error('Error setting up required sheets:', error);
+                    }
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error initializing Google API client:', error);
+            }
+        }
+
+        function signOut() {
+            google.accounts.id.disableAutoSelect();
+            accessToken = null;
+            userProfile = null;
+            
+            // Clear localStorage
+            localStorage.removeItem('googleAccessToken');
+            localStorage.removeItem('userProfile');
+            
+            // Reset UI
+            document.getElementById('loginButton').innerHTML = `
+                <div id="g_id_onload"
+                     data-client_id="1040492034608-klt6crk38lpo8vt9hpqauer57tsn78sb.apps.googleusercontent.com"
+                     data-context="signin"
+                     data-ux_mode="popup"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="signin_with"
+                     data-size="large"
+                     data-logo_alignment="left">
+                </div>
+            `;
+            
+            location.reload();
+        }
+    </script>
+</body>
+</html> 

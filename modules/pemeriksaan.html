@@ -1,0 +1,716 @@
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>Pemeriksaan & Data Kesehatan</h5>
+            <p>Kelola data pemeriksaan kehamilan, laboratorium, persalinan, dan nifas.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs" id="pemeriksaanTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="pemeriksaan-tab" data-bs-toggle="tab" data-bs-target="#pemeriksaan-content" type="button" role="tab" aria-controls="pemeriksaan-content" aria-selected="true">
+            Pemeriksaan Kehamilan
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="laboratorium-tab" data-bs-toggle="tab" data-bs-target="#laboratorium-content" type="button" role="tab" aria-controls="laboratorium-content" aria-selected="false">
+            Laboratorium
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="persalinan-tab" data-bs-toggle="tab" data-bs-target="#persalinan-content" type="button" role="tab" aria-controls="persalinan-content" aria-selected="false">
+            Persalinan
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="nifas-tab" data-bs-toggle="tab" data-bs-target="#nifas-content" type="button" role="tab" aria-controls="nifas-content" aria-selected="false">
+            Nifas
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="pemeriksaanTabContent">
+    <!-- Pemeriksaan Kehamilan Tab -->
+    <div class="tab-pane fade show active" id="pemeriksaan-content" role="tabpanel" aria-labelledby="pemeriksaan-tab">
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Pemeriksaan Kehamilan</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="pemeriksaanForm">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="selected_mother" class="form-label">Pilih Nama Ibu</label>
+                                        <div class="input-group">
+                                            <select class="form-control" id="selected_mother" required>
+                                                <option value="">Pilih Nama Ibu dari Data Identitas</option>
+                                            </select>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="refreshMotherNames()">
+                                                <i class="fas fa-sync-alt"></i> Refresh
+                                            </button>
+                                        </div>
+                                        <small class="form-text text-muted">Pilih nama ibu yang sudah terdaftar di data identitas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="status_gpa" class="form-label">Status GPA</label>
+                                        <input type="text" class="form-control" id="status_gpa" placeholder="Contoh: G2P1A0" required>
+                                        <small class="form-text text-muted">G=Gravida, P=Para, A=Abortus</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="jarak_kehamilan" class="form-label">Jarak Kehamilan</label>
+                                        <input type="number" class="form-control" id="jarak_kehamilan" min="0" step="0.1" required>
+                                        <small class="form-text text-muted">Jarak dari kehamilan sebelumnya</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="hpht" class="form-label">HPHT (Hari Pertama Haid Terakhir)</label>
+                                        <input type="date" class="form-control" id="hpht" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="taksiran_persalinan" class="form-label">Taksiran Persalinan</label>
+                                        <input type="date" class="form-control" id="taksiran_persalinan" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tb" class="form-label">Tinggi Badan (cm)</label>
+                                        <input type="number" class="form-control" id="tb" min="100" max="200" step="0.1" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="lila" class="form-label">Lingkar Lengan Atas (cm)</label>
+                                        <input type="number" class="form-control" id="lila" min="15" max="50" step="0.1" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="status_imunisasi_td" class="form-label">Status Imunisasi TD</label>
+                                        <select class="form-control" id="status_imunisasi_td" required>
+                                            <option value="">Pilih Status</option>
+                                            <option value="ya">Ya</option>
+                                            <option value="tidak">Tidak</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="injeksi_td" class="form-label">Injeksi TD</label>
+                                        <select class="form-control" id="injeksi_td" required>
+                                            <option value="">Pilih Status</option>
+                                            <option value="ya">Ya</option>
+                                            <option value="tidak">Tidak</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="skrining_tbc" class="form-label">Skrining TBC</label>
+                                        <select class="form-control" id="skrining_tbc" required>
+                                            <option value="">Pilih Hasil</option>
+                                            <option value="ya">Ya</option>
+                                            <option value="tidak">Tidak</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="skrining_jiwa" class="form-label">Skrining Jiwa</label>
+                                        <select class="form-control" id="skrining_jiwa" required>
+                                            <option value="">Pilih Hasil</option>
+                                            <option value="ya">Ya</option>
+                                            <option value="tidak">Tidak</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="konseling" class="form-label">Konseling</label>
+                                        <textarea class="form-control" id="konseling" rows="3" placeholder="Catatan konseling kehamilan"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="komplikasi" class="form-label">Komplikasi</label>
+                                        <textarea class="form-control" id="komplikasi" rows="3" placeholder="Catatan komplikasi kehamilan"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="tata_laksana_kasus_bumil" class="form-label">Tata Laksana Kasus Bumil</label>
+                                <textarea class="form-control" id="tata_laksana_kasus_bumil" rows="3" placeholder="Tata laksana untuk kasus bumil"></textarea>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-primary" onclick="nextToLaboratorium()">Next</button>
+                                <button type="button" class="btn btn-secondary" onclick="clearPemeriksaanForm()">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Riwayat Pemeriksaan Kehamilan</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="pemeriksaanTable">
+                                <thead>
+                                    <tr>
+                                        <th>Status GPA</th>
+                                        <th>Jarak Kehamilan</th>
+                                        <th>HPHT</th>
+                                        <th>Taksiran Persalinan</th>
+                                        <th>TB (cm)</th>
+                                        <th>LILA (cm)</th>
+                                        <th>Status TD</th>
+                                        <th>Injeksi TD</th>
+                                        <th>Skrining TBC</th>
+                                        <th>Skrining Jiwa</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pemeriksaanTableBody">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Laboratorium Tab -->
+    <div class="tab-pane fade" id="laboratorium-content" role="tabpanel" aria-labelledby="laboratorium-tab">
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Data Laboratorium</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="laboratoriumForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="lab_hb" class="form-label">Lab HB (g/dL)</label>
+                                        <input type="number" class="form-control" id="lab_hb" step="0.1" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="golda" class="form-label">Golongan Darah</label>
+                                        <select class="form-control" id="golda" required>
+                                            <option value="">Pilih Golongan Darah</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="AB">AB</option>
+                                            <option value="O">O</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="protein_urin" class="form-label">Protein Urin</label>
+                                        <select class="form-control" id="protein_urin" required>
+                                            <option value="">Pilih Hasil</option>
+                                            <option value="negatif">Negatif</option>
+                                            <option value="trace">Trace</option>
+                                            <option value="+1">+1</option>
+                                            <option value="+2">+2</option>
+                                            <option value="+3">+3</option>
+                                            <option value="+4">+4</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="glukosa_urin" class="form-label">Glukosa Urin</label>
+                                        <select class="form-control" id="glukosa_urin" required>
+                                            <option value="">Pilih Hasil</option>
+                                            <option value="negatif">Negatif</option>
+                                            <option value="trace">Trace</option>
+                                            <option value="+1">+1</option>
+                                            <option value="+2">+2</option>
+                                            <option value="+3">+3</option>
+                                            <option value="+4">+4</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="hiv" class="form-label">HIV</label>
+                                        <select class="form-control" id="hiv" required>
+                                            <option value="">Pilih Hasil</option>
+                                            <option value="reaktif">Reaktif</option>
+                                            <option value="non_reaktif">Non Reaktif</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="sifilis" class="form-label">Sifilis</label>
+                                        <select class="form-control" id="sifilis" required>
+                                            <option value="">Pilih Hasil</option>
+                                            <option value="reaktif">Reaktif</option>
+                                            <option value="non_reaktif">Non Reaktif</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="hbsag" class="form-label">HBsAg</label>
+                                        <select class="form-control" id="hbsag" required>
+                                            <option value="">Pilih Hasil</option>
+                                            <option value="reaktif">Reaktif</option>
+                                            <option value="non_reaktif">Non Reaktif</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tbc_mikroskopis" class="form-label">TBC Mikroskopis</label>
+                                        <select class="form-control" id="tbc_mikroskopis" required>
+                                            <option value="">Pilih Hasil</option>
+                                            <option value="positif">Positif</option>
+                                            <option value="negatif">Negatif</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="malaria" class="form-label">Malaria</label>
+                                        <select class="form-control" id="malaria" required>
+                                            <option value="">Pilih Hasil</option>
+                                            <option value="positif">Positif</option>
+                                            <option value="negatif">Negatif</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lain_lain" class="form-label">Lain-lain</label>
+                                <textarea class="form-control" id="lain_lain" rows="3" placeholder="Catatan pemeriksaan laboratorium lainnya"></textarea>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-primary" onclick="nextToPersalinan()">Next</button>
+                                <button type="button" class="btn btn-secondary" onclick="clearLabForm()">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Riwayat Laboratorium</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="laboratoriumTable">
+                                <thead>
+                                    <tr>
+                                        <th>Lab HB</th>
+                                        <th>Golongan Darah</th>
+                                        <th>Protein Urin</th>
+                                        <th>Glukosa Urin</th>
+                                        <th>HIV</th>
+                                        <th>Sifilis</th>
+                                        <th>HBsAg</th>
+                                        <th>TBC Mikroskopis</th>
+                                        <th>Malaria</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="laboratoriumTableBody">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Persalinan Tab -->
+    <div class="tab-pane fade" id="persalinan-content" role="tabpanel" aria-labelledby="persalinan-tab">
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Data Persalinan</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="persalinanForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tgl_persalinan" class="form-label">Tanggal Persalinan</label>
+                                        <input type="date" class="form-control" id="tgl_persalinan" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tempat_persalinan" class="form-label">Tempat Persalinan</label>
+                                        <select class="form-control" id="tempat_persalinan" required>
+                                            <option value="">Pilih Tempat</option>
+                                            <option value="rumah_sakit">Rumah Sakit</option>
+                                            <option value="puskesmas">Puskesmas</option>
+                                            <option value="klinik">Klinik</option>
+                                            <option value="rumah">Rumah</option>
+                                            <option value="lainnya">Lainnya</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="cara_persalinan" class="form-label">Cara Persalinan</label>
+                                        <select class="form-control" id="cara_persalinan" required>
+                                            <option value="">Pilih Cara</option>
+                                            <option value="normal">Normal</option>
+                                            <option value="sectio_caesarea">Sectio Caesarea</option>
+                                            <option value="vakum_ekstraksi">Vakum Ekstraksi</option>
+                                            <option value="forceps">Forceps</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="penolong_persalinan" class="form-label">Penolong Persalinan</label>
+                                        <select class="form-control" id="penolong_persalinan" required>
+                                            <option value="">Pilih Penolong</option>
+                                            <option value="dokter">Dokter</option>
+                                            <option value="bidan">Bidan</option>
+                                            <option value="perawat">Perawat</option>
+                                            <option value="dukun">Dukun</option>
+                                            <option value="lainnya">Lainnya</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="berat_bayi_lebih_2500" class="form-label">Berat Bayi > 2500g (gram)</label>
+                                        <input type="number" class="form-control" id="berat_bayi_lebih_2500" min="2501" step="1" placeholder="Masukkan berat dalam gram">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="berat_bayi_kurang_2500" class="form-label">Berat Bayi < 2500g (gram)</label>
+                                        <input type="number" class="form-control" id="berat_bayi_kurang_2500" max="2499" step="1" placeholder="Masukkan berat dalam gram">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="penyulit_persalinan" class="form-label">Penyulit Persalinan</label>
+                                <textarea class="form-control" id="penyulit_persalinan" rows="3" placeholder="Catatan penyulit atau komplikasi persalinan"></textarea>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-primary" onclick="nextToNifas()">Next</button>
+                                <button type="button" class="btn btn-secondary" onclick="clearPersalinanForm()">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Riwayat Persalinan</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="persalinanTable">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal Persalinan</th>
+                                        <th>Tempat Persalinan</th>
+                                        <th>Cara Persalinan</th>
+                                        <th>Penolong Persalinan</th>
+                                        <th>Berat Bayi > 2500g</th>
+                                        <th>Berat Bayi < 2500g</th>
+                                        <th>Penyulit Persalinan</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="persalinanTableBody">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nifas Tab -->
+    <div class="tab-pane fade" id="nifas-content" role="tabpanel" aria-labelledby="nifas-tab">
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Data Nifas</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="nifasForm">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="kf1" class="form-label">KF1</label>
+                                        <input type="text" class="form-control" id="kf1" placeholder="Masukkan data KF1" required>
+                                        <small class="form-text text-muted">Kunjungan Fase 1</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="kf2" class="form-label">KF2</label>
+                                        <input type="text" class="form-control" id="kf2" placeholder="Masukkan data KF2" required>
+                                        <small class="form-text text-muted">Kunjungan Fase 2</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="kf3" class="form-label">KF3</label>
+                                        <input type="text" class="form-control" id="kf3" placeholder="Masukkan data KF3" required>
+                                        <small class="form-text text-muted">Kunjungan Fase 3</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="kf4" class="form-label">KF4</label>
+                                        <input type="text" class="form-control" id="kf4" placeholder="Masukkan data KF4" required>
+                                        <small class="form-text text-muted">Kunjungan Fase 4</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tgl_kb" class="form-label">Tanggal KB</label>
+                                        <input type="date" class="form-control" id="tgl_kb">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="metode_kb" class="form-label">Metode KB</label>
+                                        <select class="form-control" id="metode_kb">
+                                            <option value="">Pilih Metode</option>
+                                            <option value="pil">Pil</option>
+                                            <option value="suntik">Suntik</option>
+                                            <option value="iud">IUD</option>
+                                            <option value="implant">Implant</option>
+                                            <option value="kondom">Kondom</option>
+                                            <option value="mow">MOW</option>
+                                            <option value="mop">MOP</option>
+                                            <option value="lainnya">Lainnya</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tgl_kasus_nifas" class="form-label">Tanggal Kasus Nifas</label>
+                                        <input type="date" class="form-control" id="tgl_kasus_nifas">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="jenis_tindakan" class="form-label">Jenis Tindakan</label>
+                                        <input type="text" class="form-control" id="jenis_tindakan" placeholder="Masukkan jenis tindakan">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="keterangan" class="form-label">Keterangan</label>
+                                <textarea class="form-control" id="keterangan" rows="3" placeholder="Catatan tambahan tentang kasus nifas"></textarea>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-primary" onclick="saveAllPemeriksaanData()">Simpan Semua Data</button>
+                                <button type="button" class="btn btn-secondary" onclick="clearNifasForm()">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Riwayat Nifas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="nifasTable">
+                                <thead>
+                                    <tr>
+                                        <th>KF1</th>
+                                        <th>KF2</th>
+                                        <th>KF3</th>
+                                        <th>KF4</th>
+                                        <th>Tanggal KB</th>
+                                        <th>Metode KB</th>
+                                        <th>Tanggal Kasus</th>
+                                        <th>Jenis Tindakan</th>
+                                        <th>Keterangan</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nifasTableBody">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-initialize when script loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPemeriksaan);
+} else {
+    initPemeriksaan();
+}
+
+function initPemeriksaan() {
+    console.log('Initializing Pemeriksaan module...');
+    
+    // Test if navigation functions are available
+    console.log('Checking navigation functions availability:');
+    console.log('nextToLaboratorium:', typeof nextToLaboratorium);
+    console.log('nextToPersalinan:', typeof nextToPersalinan);
+    console.log('nextToNifas:', typeof nextToNifas);
+    console.log('saveFormDataToSession:', typeof saveFormDataToSession);
+    console.log('loadFormDataFromSession:', typeof loadFormDataFromSession);
+    console.log('saveAllPemeriksaanData:', typeof saveAllPemeriksaanData);
+    
+    // Load mother names from identitas data
+    loadMotherNames();
+    
+    // Load data for all tabs
+    loadPemeriksaanData();
+    loadLaboratoriumData();
+    loadPersalinanData();
+    loadNifasData();
+
+    // Add event listeners for tab changes to load saved form data
+    const tabElements = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabElements.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (event) {
+            const targetId = event.target.getAttribute('href').substring(1);
+            if (targetId === 'pemeriksaan') {
+                loadFormDataFromSession('pemeriksaan');
+            } else if (targetId === 'laboratorium') {
+                loadFormDataFromSession('laboratorium');
+            } else if (targetId === 'persalinan') {
+                loadFormDataFromSession('persalinan');
+            } else if (targetId === 'nifas') {
+                loadFormDataFromSession('nifas');
+            }
+        });
+    });
+
+    // Load initial form data for the first tab
+    loadFormDataFromSession('pemeriksaan');
+    
+    console.log('Pemeriksaan module initialized successfully');
+}
+
+// Make functions globally available
+window.initPemeriksaan = initPemeriksaan;
+window.loadPemeriksaanData = loadPemeriksaanData;
+window.loadLaboratoriumData = loadLaboratoriumData;
+window.loadPersalinanData = loadPersalinanData;
+window.loadNifasData = loadNifasData;
+window.loadMotherNames = loadMotherNames;
+window.refreshMotherNames = refreshMotherNames;
+window.nextToLaboratorium = nextToLaboratorium;
+window.nextToPersalinan = nextToPersalinan;
+window.nextToNifas = nextToNifas;
+window.saveAllPemeriksaanData = saveAllPemeriksaanData;
+window.clearPemeriksaanForm = clearPemeriksaanForm;
+window.clearLabForm = clearLabForm;
+window.clearPersalinanForm = clearPersalinanForm;
+window.clearNifasForm = clearNifasForm;
+window.saveFormDataToSession = saveFormDataToSession;
+window.loadFormDataFromSession = loadFormDataFromSession;
+window.deletePemeriksaan = deletePemeriksaan;
+window.deleteLaboratorium = deleteLaboratorium;
+window.deletePersalinan = deletePersalinan;
+window.deleteNifas = deleteNifas;
+window.clearRelasiRecordByIdTrx = clearRelasiRecordByIdTrx;
+</script> 

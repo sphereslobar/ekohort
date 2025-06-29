@@ -1,0 +1,248 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Data Persalinan</h4>
+                <p class="card-text">Kelola data persalinan dan kelahiran</p>
+            </div>
+            <div class="card-body">
+                <form id="persalinanForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tanggal_persalinan" class="form-label">Tanggal Persalinan</label>
+                                <input type="datetime-local" class="form-control" id="tanggal_persalinan" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tempat_persalinan" class="form-label">Tempat Persalinan</label>
+                                <select class="form-control" id="tempat_persalinan" required>
+                                    <option value="">Pilih Tempat</option>
+                                    <option value="rumah_sakit">Rumah Sakit</option>
+                                    <option value="puskesmas">Puskesmas</option>
+                                    <option value="klinik">Klinik</option>
+                                    <option value="rumah">Rumah</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="jenis_persalinan" class="form-label">Jenis Persalinan</label>
+                                <select class="form-control" id="jenis_persalinan" required>
+                                    <option value="">Pilih Jenis</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="caesar">Caesar</option>
+                                    <option value="vacuum">Vacuum</option>
+                                    <option value="forceps">Forceps</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="penolong_persalinan" class="form-label">Penolong Persalinan</label>
+                                <select class="form-control" id="penolong_persalinan" required>
+                                    <option value="">Pilih Penolong</option>
+                                    <option value="dokter_spog">Dokter SpOG</option>
+                                    <option value="dokter_umum">Dokter Umum</option>
+                                    <option value="bidan">Bidan</option>
+                                    <option value="dukun">Dukun</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="lama_persalinan" class="form-label">Lama Persalinan (jam)</label>
+                                <input type="number" class="form-control" id="lama_persalinan" step="0.5">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="berat_bayi" class="form-label">Berat Bayi (gram)</label>
+                                <input type="number" class="form-control" id="berat_bayi" min="500" max="6000">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="panjang_bayi" class="form-label">Panjang Bayi (cm)</label>
+                                <input type="number" class="form-control" id="panjang_bayi" min="30" max="70">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
+                                <select class="form-control" id="jenis_kelamin">
+                                    <option value="">-</option>
+                                    <option value="laki_laki">Laki-laki</option>
+                                    <option value="perempuan">Perempuan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="apgar_score" class="form-label">APGAR Score</label>
+                                <input type="text" class="form-control" id="apgar_score" placeholder="8/9">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="komplikasi_ibu" class="form-label">Komplikasi Ibu</label>
+                                <textarea class="form-control" id="komplikasi_ibu" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="komplikasi_bayi" class="form-label">Komplikasi Bayi</label>
+                                <textarea class="form-control" id="komplikasi_bayi" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-primary" onclick="savePersalinanData()">Simpan Data</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearPersalinanForm()">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Riwayat Persalinan</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="persalinanTable">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Tempat</th>
+                                <th>Jenis</th>
+                                <th>Penolong</th>
+                                <th>BB Bayi</th>
+                                <th>PB Bayi</th>
+                                <th>JK</th>
+                                <th>APGAR</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="persalinanTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function initPersalinan() {
+    loadPersalinanData();
+    
+    document.getElementById('persalinanForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await savePersalinanData();
+    });
+}
+
+function clearPersalinanForm() {
+    document.getElementById('persalinanForm').reset();
+}
+
+async function savePersalinanData() {
+    showLoading();
+    try {
+        // Ensure user is properly initialized
+        if (!currentUserId) {
+            console.log('User ID not set, initializing user...');
+            if (userProfile && userProfile.email) {
+                await createOrGetUser(userProfile.email);
+            } else {
+                throw new Error('User not signed in properly. Please refresh and sign in again.');
+            }
+        }
+        
+        const formData = [
+            document.getElementById('tanggal_persalinan').value,
+            document.getElementById('tempat_persalinan').value,
+            document.getElementById('jenis_persalinan').value,
+            document.getElementById('penolong_persalinan').value,
+            document.getElementById('lama_persalinan').value,
+            document.getElementById('berat_bayi').value,
+            document.getElementById('panjang_bayi').value,
+            document.getElementById('jenis_kelamin').value,
+            document.getElementById('apgar_score').value,
+            document.getElementById('komplikasi_ibu').value,
+            document.getElementById('komplikasi_bayi').value,
+            new Date().toISOString()
+        ];
+        
+        await appendUserDataToSheet('Persalinan', formData);
+        alert('Data persalinan berhasil disimpan!');
+        clearPersalinanForm();
+        loadPersalinanData();
+    } catch (error) {
+        console.error('Error saving data:', error);
+        alert('Gagal menyimpan data: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function loadPersalinanData() {
+    try {
+        const data = await readUserDataFromSheet('Persalinan');
+        const tableBody = document.getElementById('persalinanTableBody');
+        
+        if (data && data.length > 0) {
+            tableBody.innerHTML = data.map((row, index) => `
+                <tr>
+                    <td>${new Date(row[0]).toLocaleDateString() || ''}</td>
+                    <td>${row[1] || ''}</td>
+                    <td>${row[2] || ''}</td>
+                    <td>${row[3] || ''}</td>
+                    <td>${row[5] || ''}g</td>
+                    <td>${row[6] || ''}cm</td>
+                    <td>${row[7] || ''}</td>
+                    <td>${row[8] || ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="deletePersalinan(${index + 2})">
+                            Hapus
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tableBody.innerHTML = '<tr><td colspan="9" class="text-center">Belum ada data persalinan</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading data:', error);
+    }
+}
+
+async function deletePersalinan(rowIndex) {
+    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+        try {
+            await writeToSheet(`persalinan!A${rowIndex}:L${rowIndex}`, [['', '', '', '', '', '', '', '', '', '', '', '']]);
+            loadPersalinanData();
+        } catch (error) {
+            console.error('Error deleting data:', error);
+            alert('Gagal menghapus data: ' + error.message);
+        }
+    }
+}
+</script> 
