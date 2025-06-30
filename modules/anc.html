@@ -1,3 +1,45 @@
+<style>
+.mother-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.mother-dropdown .dropdown-item {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.mother-dropdown .dropdown-item:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.mother-dropdown .dropdown-item.text-muted {
+    cursor: default;
+}
+
+.mother-dropdown .dropdown-item.text-muted:hover {
+    background-color: transparent;
+}
+
+.position-relative {
+    position: relative;
+}
+</style>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -11,13 +53,20 @@
                         <div class="col-md-12">
                             <div class="mb-3">
                                 <label for="selected_mother_anc" class="form-label">Pilih Nama Ibu</label>
-                                <div class="input-group">
-                                    <select class="form-control" id="selected_mother_anc" required>
-                                        <option value="">Pilih Nama Ibu dari Data Identitas</option>
-                                    </select>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="refreshMotherNamesAnc()">
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="selected_mother_anc" 
+                                           placeholder="Ketik untuk mencari atau klik untuk melihat semua..." 
+                                           autocomplete="off" readonly>
+                                    <div class="mother-dropdown" id="motherDropdownAnc" style="display: none;">
+                                        <div class="dropdown-item text-muted">Memuat data ibu...</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="selected_mother_code_anc" name="selected_mother_code_anc">
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="refreshMotherNamesAnc()">
                                         <i class="fas fa-sync-alt"></i> Refresh
                                     </button>
+                
                                 </div>
                                 <small class="form-text text-muted">Pilih nama ibu yang sudah terdaftar di data identitas</small>
                             </div>
@@ -27,8 +76,9 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="tgl_anc" class="form-label">Tanggal ANC</label>
+                                <label for="tgl_anc" class="form-label">Tanggal ANC <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="tgl_anc" required>
+                                <small class="form-text text-muted">Wajib diisi</small>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -99,6 +149,7 @@
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" class="btn btn-primary" onclick="saveAncData()">Simpan Data</button>
                         <button type="button" class="btn btn-secondary" onclick="clearAncForm()">Reset</button>
+   
                     </div>
                 </form>
             </div>
@@ -160,6 +211,16 @@ function initAnc() {
         console.error('loadMotherNamesAnc function not available');
     }
     
+    // Initialize mother dropdown functionality after a short delay
+    setTimeout(() => {
+        if (typeof initMotherDropdownAnc === 'function') {
+            initMotherDropdownAnc();
+            console.log('ANC Mother dropdown initialized successfully');
+        } else {
+            console.error('initMotherDropdownAnc function not available');
+        }
+    }, 1000);
+    
     // Load ANC data using the unified function from main.js
     if (typeof loadAncData === 'function') {
         loadAncData();
@@ -189,6 +250,8 @@ window.initAnc = initAnc;
 window.clearAncForm = clearAncForm;
 window.loadAncData = loadAncData;
 window.deleteAnc = deleteAnc;
+window.testMotherDropdownAnc = testMotherDropdownAnc;
+window.testAncDuplicateCheck = testAncDuplicateCheck;
 
 // Auto-initialize when script loads
 if (document.readyState === 'loading') {

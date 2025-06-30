@@ -680,10 +680,23 @@ async function savePemeriksaanData() {
 // Global clear function for Pemeriksaan
 function clearPemeriksaanForm() {
     document.getElementById('pemeriksaanForm').reset();
-    // Reset mother selection to first option
-    const motherSelect = document.getElementById('selected_mother');
-    if (motherSelect) {
-        motherSelect.selectedIndex = 0;
+    
+    // Clear the custom mother fields
+    const motherInput = document.getElementById('selected_mother');
+    const motherCodeInput = document.getElementById('selected_mother_code');
+    const motherDropdown = document.getElementById('motherDropdown');
+    
+    if (motherInput) {
+        motherInput.value = '';
+        // Don't set readonly - keep it editable
+        motherInput.placeholder = 'Ketik untuk mencari atau klik untuk melihat semua...';
+    }
+    if (motherCodeInput) {
+        motherCodeInput.value = '';
+    }
+    if (motherDropdown) {
+        motherDropdown.style.display = 'none';
+        motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Memuat data ibu...</div>';
     }
 }
 
@@ -858,8 +871,6 @@ async function saveAncData() {
             throw new Error('Silakan pilih nama ibu terlebih dahulu');
         }
         
-        console.log('Using existing relasi record for ANC:', motherRelasiRecord);
-        
         // Helper function to safely get element value
         const getElementValue = (elementId) => {
             const element = document.getElementById(elementId);
@@ -870,9 +881,36 @@ async function saveAncData() {
             return element.value || '';
         };
         
+        // Validate required fields
+        const tglAnc = getElementValue('tgl_anc');
+        if (!tglAnc) {
+            throw new Error('Tanggal ANC wajib diisi');
+        }
+        
+        console.log('Using existing relasi record for ANC:', motherRelasiRecord);
+        
+        // Check for duplicate records (same id_trx and tanggal)
+        console.log('Checking for duplicate ANC records...');
+        const existingAncData = await readFromSheet('ANC!A:ZZ');
+        
+        if (existingAncData && existingAncData.length > 1) {
+            // Skip header row and check for duplicates
+            const dataRows = existingAncData.slice(1);
+            const isDuplicate = dataRows.some(row => {
+                const existingIdTrx = row[0]; // id_trx is in first column
+                const existingTglAnc = row[1]; // tgl_anc is in second column
+                
+                return existingIdTrx === motherRelasiRecord.id_trx && existingTglAnc === tglAnc;
+            });
+            
+            if (isDuplicate) {
+                throw new Error(`Data ANC untuk tanggal ${tglAnc} sudah ada untuk ibu ini. Silakan pilih tanggal yang berbeda atau edit data yang sudah ada.`);
+            }
+        }
+        
         const formData = [
             motherRelasiRecord.id_trx, // id_trx (first column) - use existing id_trx
-            getElementValue('tgl_anc'), // tgl_anc
+            tglAnc, // tgl_anc
             getElementValue('bb'), // bb (berat badan)
             getElementValue('tb'), // tb (tinggi badan)
             getElementValue('td'), // td (tekanan darah)
@@ -939,11 +977,24 @@ function clearAncForm() {
     const form = document.getElementById('ancForm');
     if (form) {
         form.reset();
-        // Reset mother selection to first option
-        const motherSelect = document.getElementById('selected_mother_anc');
-        if (motherSelect) {
-            motherSelect.selectedIndex = 0;
+        
+        // Clear mother dropdown fields
+        const motherInput = document.getElementById('selected_mother_anc');
+        const motherCodeInput = document.getElementById('selected_mother_code_anc');
+        const motherDropdown = document.getElementById('motherDropdownAnc');
+        
+        if (motherInput) {
+            motherInput.value = '';
+            motherInput.removeAttribute('readonly');
+            motherInput.placeholder = 'Ketik untuk mencari atau klik untuk melihat semua...';
         }
+        if (motherCodeInput) {
+            motherCodeInput.value = '';
+        }
+        if (motherDropdown) {
+            motherDropdown.style.display = 'none';
+        }
+        
         console.log('ANC form cleared');
     } else {
         console.error('ANC form not found');
@@ -1365,27 +1416,78 @@ async function loadMotherNames() {
     try {
         console.log('Loading mother names from identitas data...');
         const identitasData = await readUserDataFromSheet('Identitas');
-        const motherSelect = document.getElementById('selected_mother');
+        const motherInput = document.getElementById('selected_mother');
+        const motherDropdown = document.getElementById('motherDropdown');
+        const motherCodeInput = document.getElementById('selected_mother_code');
         
-        if (!motherSelect) {
-            console.log('Mother select element not found');
+        if (!motherInput || !motherDropdown) {
+            console.log('Mother elements not found');
             return;
         }
         
-        // Clear existing options except the first one
-        motherSelect.innerHTML = '<option value="">Pilih Nama Ibu dari Data Identitas</option>';
+        // Store all mother options globally for search functionality
+        window.allMotherOptions = [];
+        
+        // Clear existing content
+        motherDropdown.innerHTML = '';
+        motherInput.value = '';
+        if (motherCodeInput) motherCodeInput.value = '';
+        motherInput.placeholder = 'Memuat data ibu...';
+        // Don't set readonly - keep it editable during loading
         
         if (identitasData && identitasData.length > 0) {
             // Get user's relasi records to map identitas to id_trx
             const userRelasi = await getUserRelasiRecords();
             console.log('User relasi records for mapping:', userRelasi);
             
+            // Load wilayah data to get desa names
+            const wilayahData = await loadWilayahData();
+            console.log('Wilayah data for desa mapping:', wilayahData);
+            
+            // Create a map of desa codes to desa names
+            const desaMap = new Map();
+            if (wilayahData && wilayahData.length > 0) {
+                console.log('Processing wilayah data for desa mapping...');
+                wilayahData.forEach((row, index) => {
+                    const desaKode = row[4]; // BPS Kode Desa Kelurahan
+                    const desaNama = row[5]; // BPS Nama Desa Kelurahan
+                    desaMap.set(desaKode, desaNama);
+                    if (index < 3) { // Log first 3 rows for debugging
+                        console.log(`Wilayah row ${index}: desaKode=${desaKode}, desaNama=${desaNama}`);
+                    }
+                });
+                console.log(`Created desa map with ${desaMap.size} entries`);
+            } else {
+                console.log('No wilayah data available for desa mapping');
+            }
+            
             // Prevent duplicate id_trx in dropdown
             const addedIdTrx = new Set();
+            const uniqueMothers = [];
+            
             identitasData.forEach((row, index) => {
                 const motherName = row[2]; // nama_ibu is at index 2
                 const nik = row[0]; // NIK is at index 0
+                const desaKode = row[11]; // desa kode is at index 11
                 const identitasRelasiId = row[row.length - 1]; // relasi ID is at the last index
+                
+                // Debug: Log the first few rows to check data structure
+                if (index < 3) {
+                    console.log(`Identitas row ${index}:`, row);
+                    console.log(`  - motherName: ${motherName}`);
+                    console.log(`  - nik: ${nik}`);
+                    console.log(`  - desaKode: ${desaKode}`);
+                    console.log(`  - identitasRelasiId: ${identitasRelasiId}`);
+                }
+                
+                // Get desa name from the map
+                const desaNama = desaMap.get(desaKode) || 'Desa tidak diketahui';
+                
+                // Debug: Log desa mapping result
+                if (index < 3) {
+                    console.log(`  - desaNama from map: ${desaNama}`);
+                    console.log(`  - desaMap has key '${desaKode}': ${desaMap.has(desaKode)}`);
+                }
                 
                 // Find the corresponding relasi record to get the id_trx
                 const relasiRecord = userRelasi.find(relasi => relasi[0] === identitasRelasiId);
@@ -1393,14 +1495,17 @@ async function loadMotherNames() {
                 if (relasiRecord) {
                     const idTrx = relasiRecord[1]; // id_trx is at index 1
                     if (!addedIdTrx.has(idTrx)) {
-                        const option = document.createElement('option');
-                        option.value = idTrx; // Use id_trx as value
-                        option.textContent = `${motherName} (NIK: ${nik})`; // Show name and NIK
-                        option.setAttribute('data-relasi-id', identitasRelasiId);
-                        option.setAttribute('data-id-trx', idTrx);
-                        motherSelect.appendChild(option);
+                        uniqueMothers.push({
+                            id_trx: idTrx,
+                            nama: motherName,
+                            nik: nik,
+                            desa_kode: desaKode,
+                            desa_nama: desaNama,
+                            relasi_id: identitasRelasiId,
+                            display_text: `${motherName} (NIK: ${nik}) - ${desaNama}`
+                        });
                         addedIdTrx.add(idTrx);
-                        console.log(`Added mother option: ${motherName} with id_trx: ${idTrx}`);
+                        console.log(`Added mother option: ${motherName} with id_trx: ${idTrx}, desa: ${desaNama}`);
                     } else {
                         console.log(`Skipped duplicate mother option: ${motherName} with id_trx: ${idTrx}`);
                     }
@@ -1408,25 +1513,38 @@ async function loadMotherNames() {
                     console.warn(`No relasi record found for identitas relasi ID: ${identitasRelasiId}`);
                 }
             });
-            console.log(`Loaded ${addedIdTrx.size} unique mother names`);
+            
+            // Sort by nama
+            uniqueMothers.sort((a, b) => a.nama.localeCompare(b.nama));
+            
+            // Store for search functionality
+            window.allMotherOptions = uniqueMothers;
+            
+            // Render dropdown items
+            renderMotherDropdown(uniqueMothers);
+            
+            console.log(`Loaded ${uniqueMothers.length} unique mother names with desa information`);
         } else {
             console.log('No identitas data found');
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'Tidak ada data identitas tersedia';
-            option.disabled = true;
-            motherSelect.appendChild(option);
+            motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada data identitas tersedia</div>';
+            // Don't set readonly - let users still type and search
+            motherInput.placeholder = 'Tidak ada data identitas tersedia';
+            window.allMotherOptions = [];
         }
     } catch (error) {
         console.error('Error loading mother names:', error);
+        const motherDropdown = document.getElementById('motherDropdown');
+        if (motherDropdown) {
+            motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Error loading data</div>';
+        }
     }
 }
 
 // Function to get relasi record from selected mother
 async function getSelectedMotherRelasiRecord() {
-    const motherSelect = document.getElementById('selected_mother');
-    if (motherSelect && motherSelect.value) {
-        const selectedIdTrx = motherSelect.value;
+    const motherCodeInput = document.getElementById('selected_mother_code');
+    if (motherCodeInput && motherCodeInput.value) {
+        const selectedIdTrx = motherCodeInput.value;
         
         try {
             // Get the relasi record for the selected mother using id_trx
@@ -1453,9 +1571,9 @@ async function getSelectedMotherRelasiRecord() {
 
 // Function to get relasi ID from selected mother (for backward compatibility)
 function getSelectedMotherRelasiId() {
-    const motherSelect = document.getElementById('selected_mother');
-    if (motherSelect && motherSelect.value) {
-        return motherSelect.value;
+    const motherCodeInput = document.getElementById('selected_mother_code');
+    if (motherCodeInput && motherCodeInput.value) {
+        return motherCodeInput.value;
     }
     return null;
 }
@@ -1471,27 +1589,53 @@ async function loadMotherNamesAnc() {
     try {
         console.log('Loading mother names for ANC form...');
         const identitasData = await readUserDataFromSheet('Identitas');
-        const motherSelect = document.getElementById('selected_mother_anc');
+        const motherInput = document.getElementById('selected_mother_anc');
+        const motherDropdown = document.getElementById('motherDropdownAnc');
+        const motherCodeInput = document.getElementById('selected_mother_code_anc');
         
-        if (!motherSelect) {
-            console.log('ANC mother select element not found');
+        if (!motherInput || !motherDropdown) {
+            console.log('ANC mother elements not found');
             return;
         }
         
-        // Clear existing options except the first one
-        motherSelect.innerHTML = '<option value="">Pilih Nama Ibu dari Data Identitas</option>';
+        // Set loading state
+        motherInput.value = '';
+        motherInput.placeholder = 'Memuat data ibu...';
+        motherInput.setAttribute('readonly', 'true');
+        motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Memuat data ibu...</div>';
+        if (motherCodeInput) motherCodeInput.value = '';
         
         if (identitasData && identitasData.length > 0) {
             // Get user's relasi records to map identitas to id_trx
             const userRelasi = await getUserRelasiRecords();
             console.log('User relasi records for ANC mapping:', userRelasi);
             
+            // Load wilayah data to get desa names
+            const wilayahData = await loadWilayahData();
+            console.log('Wilayah data for ANC desa mapping:', wilayahData);
+            
+            // Create a map of desa codes to desa names
+            const desaMap = new Map();
+            if (wilayahData && wilayahData.length > 0) {
+                wilayahData.forEach(row => {
+                    const desaKode = row[4]; // BPS Kode Desa Kelurahan
+                    const desaNama = row[5]; // BPS Nama Desa Kelurahan
+                    desaMap.set(desaKode, desaNama);
+                });
+            }
+            
             // Prevent duplicate id_trx in dropdown
             const addedIdTrx = new Set();
+            const motherOptions = [];
+            
             identitasData.forEach((row, index) => {
                 const motherName = row[2]; // nama_ibu is at index 2
                 const nik = row[0]; // NIK is at index 0
+                const desaKode = row[11]; // desa kode is at index 11
                 const identitasRelasiId = row[row.length - 1]; // relasi ID is at the last index
+                
+                // Get desa name from the map
+                const desaNama = desaMap.get(desaKode) || 'Desa tidak diketahui';
                 
                 // Find the corresponding relasi record to get the id_trx
                 const relasiRecord = userRelasi.find(relasi => relasi[0] === identitasRelasiId);
@@ -1499,14 +1643,16 @@ async function loadMotherNamesAnc() {
                 if (relasiRecord) {
                     const idTrx = relasiRecord[1]; // id_trx is at index 1
                     if (!addedIdTrx.has(idTrx)) {
-                        const option = document.createElement('option');
-                        option.value = idTrx; // Use id_trx as value
-                        option.textContent = `${motherName} (NIK: ${nik})`; // Show name and NIK
-                        option.setAttribute('data-relasi-id', identitasRelasiId);
-                        option.setAttribute('data-id-trx', idTrx);
-                        motherSelect.appendChild(option);
+                        motherOptions.push({
+                            idTrx: idTrx,
+                            nama: motherName,
+                            nik: nik,
+                            desa_nama: desaNama,
+                            identitasRelasiId: identitasRelasiId,
+                            displayText: `${motherName} (NIK: ${nik}) - ${desaNama}`
+                        });
                         addedIdTrx.add(idTrx);
-                        console.log(`Added mother option for ANC: ${motherName} with id_trx: ${idTrx}`);
+                        console.log(`Added mother option for ANC: ${motherName} with id_trx: ${idTrx}, desa: ${desaNama}`);
                     } else {
                         console.log(`Skipped duplicate mother option for ANC: ${motherName} with id_trx: ${idTrx}`);
                     }
@@ -1514,25 +1660,47 @@ async function loadMotherNamesAnc() {
                     console.warn(`No relasi record found for identitas relasi ID: ${identitasRelasiId}`);
                 }
             });
+            
+            // Store globally for search functionality
+            window.allMotherOptionsAnc = motherOptions;
+            
+            // Sort by name
+            motherOptions.sort((a, b) => a.nama.localeCompare(b.nama));
+            
+            // Render dropdown
+            renderMotherDropdownAnc(motherOptions);
+            
             console.log(`Loaded ${addedIdTrx.size} unique mother names for ANC`);
         } else {
             console.log('No identitas data found for ANC');
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'Tidak ada data identitas tersedia';
-            option.disabled = true;
-            motherSelect.appendChild(option);
+            motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada data identitas tersedia</div>';
+            window.allMotherOptionsAnc = [];
         }
+        
+        // Update input state
+        motherInput.placeholder = 'Ketik untuk mencari atau klik untuk melihat semua...';
+        motherInput.removeAttribute('readonly');
+        
     } catch (error) {
         console.error('Error loading mother names for ANC:', error);
+        const motherInput = document.getElementById('selected_mother_anc');
+        const motherDropdown = document.getElementById('motherDropdownAnc');
+        if (motherInput) {
+            motherInput.placeholder = 'Error memuat data';
+            motherInput.setAttribute('readonly', 'true');
+        }
+        if (motherDropdown) {
+            motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Error memuat data</div>';
+        }
+        window.allMotherOptionsAnc = [];
     }
 }
 
 // Function to get relasi record from selected mother for ANC
 async function getSelectedMotherRelasiRecordAnc() {
-    const motherSelect = document.getElementById('selected_mother_anc');
-    if (motherSelect && motherSelect.value) {
-        const selectedIdTrx = motherSelect.value;
+    const motherCodeInput = document.getElementById('selected_mother_code_anc');
+    if (motherCodeInput && motherCodeInput.value) {
+        const selectedIdTrx = motherCodeInput.value;
         
         try {
             // Get the relasi record for the selected mother using id_trx
@@ -2137,4 +2305,479 @@ async function deleteAnc(idTrx) {
             hideLoading();
         }
     }
-} 
+}
+
+// Function to render mother dropdown items
+function renderMotherDropdown(motherOptions) {
+    const motherDropdown = document.getElementById('motherDropdown');
+    
+    if (!motherDropdown) return;
+    
+    if (motherOptions.length === 0) {
+        motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada data ibu ditemukan</div>';
+        return;
+    }
+    
+    // Clear existing content
+    motherDropdown.innerHTML = '';
+    
+    // Add dropdown items
+    motherOptions.forEach(mother => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.style.cursor = 'pointer';
+        item.textContent = mother.display_text;
+        item.dataset.idTrx = mother.id_trx;
+        item.dataset.nama = mother.nama;
+        item.dataset.nik = mother.nik;
+        item.dataset.desaKode = mother.desa_kode;
+        item.dataset.desaNama = mother.desa_nama;
+        
+        // Add click event
+        item.addEventListener('click', function() {
+            selectMother(mother.id_trx, mother.display_text);
+        });
+        
+        motherDropdown.appendChild(item);
+    });
+}
+
+// Function to select a mother
+function selectMother(idTrx, displayText) {
+    const motherInput = document.getElementById('selected_mother');
+    const motherCodeInput = document.getElementById('selected_mother_code');
+    const motherDropdown = document.getElementById('motherDropdown');
+    
+    motherInput.value = displayText;
+    if (motherCodeInput) motherCodeInput.value = idTrx;
+    motherDropdown.style.display = 'none';
+    
+    console.log('Selected mother:', { idTrx, displayText });
+}
+
+// Function to filter mother options based on search
+function filterMotherOptions(searchTerm) {
+    if (!window.allMotherOptions) {
+        return [];
+    }
+    
+    if (!searchTerm || searchTerm.trim() === '') {
+        return window.allMotherOptions;
+    }
+    
+    const term = searchTerm.toLowerCase().trim();
+    return window.allMotherOptions.filter(mother => 
+        mother.nama.toLowerCase().includes(term) ||
+        mother.nik.toLowerCase().includes(term) ||
+        mother.desa_nama.toLowerCase().includes(term) ||
+        mother.display_text.toLowerCase().includes(term)
+    );
+}
+
+// Function to initialize mother dropdown functionality
+function initMotherDropdown() {
+    console.log('=== Initializing mother dropdown ===');
+    
+    const motherInput = document.getElementById('selected_mother');
+    const motherDropdown = document.getElementById('motherDropdown');
+    const motherCodeInput = document.getElementById('selected_mother_code');
+    
+    if (!motherInput || !motherDropdown) {
+        console.log('Mother elements not found for initialization');
+        return;
+    }
+    
+    // Make the input field editable immediately
+    motherInput.removeAttribute('readonly');
+    motherInput.placeholder = 'Ketik untuk mencari atau klik untuk melihat semua...';
+    
+    // Add search functionality to mother input
+    if (motherInput) {
+        // Focus event - show dropdown
+        motherInput.addEventListener('focus', function() {
+            if (window.allMotherOptions && window.allMotherOptions.length > 0) {
+                motherDropdown.style.display = 'block';
+                renderMotherDropdown(window.allMotherOptions);
+            } else {
+                // Show loading message if no data yet
+                motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Memuat data ibu...</div>';
+                motherDropdown.style.display = 'block';
+            }
+        });
+        
+        // Input event - search as user types
+        motherInput.addEventListener('input', function() {
+            const searchTerm = this.value;
+            
+            if (window.allMotherOptions && window.allMotherOptions.length > 0) {
+                const filteredOptions = filterMotherOptions(searchTerm);
+                
+                if (filteredOptions.length > 0) {
+                    motherDropdown.style.display = 'block';
+                    renderMotherDropdown(filteredOptions);
+                } else {
+                    motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada ibu ditemukan</div>';
+                    motherDropdown.style.display = 'block';
+                }
+            } else {
+                // Show loading message if no data yet
+                motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Memuat data ibu...</div>';
+                motherDropdown.style.display = 'block';
+            }
+            
+            // Clear hidden code if user is typing (not selecting)
+            if (motherCodeInput) {
+                motherCodeInput.value = '';
+            }
+        });
+        
+        // Click event - show all options
+        motherInput.addEventListener('click', function() {
+            if (window.allMotherOptions && window.allMotherOptions.length > 0) {
+                motherDropdown.style.display = 'block';
+                renderMotherDropdown(window.allMotherOptions);
+            } else {
+                // Show loading message if no data yet
+                motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Memuat data ibu...</div>';
+                motherDropdown.style.display = 'block';
+            }
+        });
+        
+        console.log('Mother input event listeners added');
+    }
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (motherInput && motherDropdown) {
+            const isClickInsideMother = motherInput.contains(event.target) || 
+                                       motherDropdown.contains(event.target) ||
+                                       event.target === motherInput;
+            
+            if (!isClickInsideMother) {
+                motherDropdown.style.display = 'none';
+            }
+        }
+    });
+    
+    console.log('Mother dropdown initialization completed');
+}
+
+// Test function for Mother dropdown functionality
+async function testMotherDropdown() {
+    console.log('=== Testing mother dropdown ===');
+    try {
+        console.log('Testing loadMotherNames...');
+        await loadMotherNames();
+        console.log('Mother names loaded');
+        
+        const motherInput = document.getElementById('selected_mother');
+        const motherDropdown = document.getElementById('motherDropdown');
+        
+        if (motherInput && motherDropdown) {
+            console.log('Mother input element found:', !!motherInput);
+            console.log('Mother dropdown element found:', !!motherDropdown);
+            console.log('Global mother options count:', window.allMotherOptions ? window.allMotherOptions.length : 0);
+            console.log('Dropdown innerHTML:', motherDropdown.innerHTML);
+            
+            // Test search functionality
+            if (window.allMotherOptions && window.allMotherOptions.length > 0) {
+                const firstMother = window.allMotherOptions[0];
+                console.log('First mother data:', firstMother);
+                console.log('Testing search with first mother name:', firstMother.nama);
+                console.log('Testing search with first mother desa:', firstMother.desa_nama);
+                
+                const filteredByName = filterMotherOptions(firstMother.nama.substring(0, 3));
+                console.log('Search results by name "' + firstMother.nama.substring(0, 3) + '":', filteredByName);
+                
+                const filteredByDesa = filterMotherOptions(firstMother.desa_nama.substring(0, 3));
+                console.log('Search results by desa "' + firstMother.desa_nama.substring(0, 3) + '":', filteredByDesa);
+            }
+            
+            alert('Mother dropdown test completed successfully! Check console for details.');
+        } else {
+            console.log('Mother elements not found');
+            alert('Mother dropdown test failed: Elements not found');
+        }
+        
+    } catch (error) {
+        console.error('Error in testMotherDropdown:', error);
+        alert('Mother dropdown test failed: ' + error.message);
+    }
+}
+
+// Test function specifically for desa mapping
+async function testDesaMapping() {
+    console.log('=== Testing desa mapping ===');
+    try {
+        // Load wilayah data
+        const wilayahData = await loadWilayahData();
+        console.log('Wilayah data loaded, count:', wilayahData.length);
+        
+        // Load identitas data
+        const identitasData = await readFromSheet('Identitas!A:Z');
+        console.log('Identitas data loaded, count:', identitasData.length);
+        
+        if (identitasData && identitasData.length > 1) {
+            // Skip header
+            const dataRows = identitasData.slice(1);
+            
+            // Create desa map
+            const desaMap = new Map();
+            if (wilayahData && wilayahData.length > 0) {
+                wilayahData.forEach(row => {
+                    const desaKode = row[4]; // BPS Kode Desa Kelurahan
+                    const desaNama = row[5]; // BPS Nama Desa Kelurahan
+                    desaMap.set(desaKode, desaNama);
+                });
+            }
+            
+            console.log('Desa map created with', desaMap.size, 'entries');
+            console.log('First 10 desa map entries:');
+            let count = 0;
+            for (let [kode, nama] of desaMap) {
+                console.log(`  ${kode} -> ${nama}`);
+                count++;
+                if (count >= 10) break;
+            }
+            
+            // Check first few identitas records
+            console.log('Checking first 5 identitas records for desa mapping:');
+            for (let i = 0; i < Math.min(5, dataRows.length); i++) {
+                const row = dataRows[i];
+                const motherName = row[2];
+                const desaKode = row[11];
+                const desaNama = desaMap.get(desaKode);
+                
+                console.log(`Record ${i + 1}:`);
+                console.log(`  Mother: ${motherName}`);
+                console.log(`  Desa Code: ${desaKode}`);
+                console.log(`  Desa Name: ${desaNama}`);
+                console.log(`  Map has key: ${desaMap.has(desaKode)}`);
+                console.log('  Raw row:', row);
+            }
+            
+            alert('Desa mapping test completed! Check console for details.');
+        } else {
+            console.log('No identitas data found');
+            alert('No identitas data found for testing');
+        }
+        
+    } catch (error) {
+        console.error('Error in testDesaMapping:', error);
+        alert('Desa mapping test failed: ' + error.message);
+    }
+}
+
+// ANC Mother dropdown functions
+function renderMotherDropdownAnc(motherOptions) {
+    const motherDropdown = document.getElementById('motherDropdownAnc');
+    
+    if (!motherDropdown) return;
+    
+    if (motherOptions.length === 0) {
+        motherDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada data ibu ditemukan</div>';
+        return;
+    }
+    
+    // Clear existing content
+    motherDropdown.innerHTML = '';
+    
+    // Add dropdown items
+    motherOptions.forEach(mother => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.style.cursor = 'pointer';
+        item.textContent = mother.displayText;
+        item.dataset.idTrx = mother.idTrx;
+        item.dataset.nama = mother.nama;
+        item.dataset.nik = mother.nik;
+        item.dataset.desaNama = mother.desa_nama;
+        item.dataset.identitasRelasiId = mother.identitasRelasiId;
+        
+        // Add click event
+        item.addEventListener('click', function() {
+            selectMotherAnc(mother.idTrx, mother.displayText);
+        });
+        
+        motherDropdown.appendChild(item);
+    });
+}
+
+function selectMotherAnc(idTrx, displayText) {
+    const motherInput = document.getElementById('selected_mother_anc');
+    const motherDropdown = document.getElementById('motherDropdownAnc');
+    const motherCodeInput = document.getElementById('selected_mother_code_anc');
+    
+    if (motherInput) motherInput.value = displayText;
+    if (motherCodeInput) motherCodeInput.value = idTrx;
+    if (motherDropdown) motherDropdown.style.display = 'none';
+    
+    console.log('Selected mother for ANC:', { idTrx, displayText });
+}
+
+function filterMotherOptionsAnc(searchTerm) {
+    if (!window.allMotherOptionsAnc) return [];
+    
+    if (!searchTerm.trim()) {
+        return window.allMotherOptionsAnc;
+    }
+    
+    const term = searchTerm.toLowerCase();
+    return window.allMotherOptionsAnc.filter(mother => 
+        mother.nama.toLowerCase().includes(term) ||
+        mother.nik.includes(term) ||
+        mother.desa_nama.toLowerCase().includes(term)
+    );
+}
+
+function initMotherDropdownAnc() {
+    console.log('Initializing ANC mother dropdown...');
+    
+    const motherInput = document.getElementById('selected_mother_anc');
+    const motherDropdown = document.getElementById('motherDropdownAnc');
+    
+    if (!motherInput || !motherDropdown) {
+        console.log('ANC mother dropdown elements not found');
+        return;
+    }
+    
+    // Remove readonly immediately to ensure field is typable
+    motherInput.removeAttribute('readonly');
+    
+    // Add event listeners
+    motherInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value;
+        const filteredOptions = filterMotherOptionsAnc(searchTerm);
+        renderMotherDropdownAnc(filteredOptions);
+        motherDropdown.style.display = 'block';
+    });
+    
+    motherInput.addEventListener('focus', function() {
+        // Remove readonly when focused to ensure field is editable
+        motherInput.removeAttribute('readonly');
+        
+        if (window.allMotherOptionsAnc && window.allMotherOptionsAnc.length > 0) {
+            const filteredOptions = filterMotherOptionsAnc(motherInput.value);
+            renderMotherDropdownAnc(filteredOptions);
+            motherDropdown.style.display = 'block';
+        }
+    });
+    
+    motherInput.addEventListener('click', function() {
+        // Remove readonly when clicked to ensure field is editable
+        motherInput.removeAttribute('readonly');
+        
+        if (window.allMotherOptionsAnc && window.allMotherOptionsAnc.length > 0) {
+            const filteredOptions = filterMotherOptionsAnc(motherInput.value);
+            renderMotherDropdownAnc(filteredOptions);
+            motherDropdown.style.display = 'block';
+        }
+    });
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!motherInput.contains(e.target) && !motherDropdown.contains(e.target)) {
+            motherDropdown.style.display = 'none';
+        }
+    });
+    
+    console.log('ANC mother dropdown initialization completed');
+}
+
+// Test function for ANC Mother dropdown functionality
+async function testMotherDropdownAnc() {
+    console.log('=== Testing ANC mother dropdown ===');
+    try {
+        console.log('Testing loadMotherNamesAnc...');
+        await loadMotherNamesAnc();
+        console.log('ANC Mother names loaded');
+        
+        const motherInput = document.getElementById('selected_mother_anc');
+        const motherDropdown = document.getElementById('motherDropdownAnc');
+        
+        if (motherInput && motherDropdown) {
+            console.log('ANC Mother input element found:', !!motherInput);
+            console.log('ANC Mother dropdown element found:', !!motherDropdown);
+            console.log('Global ANC mother options count:', window.allMotherOptionsAnc ? window.allMotherOptionsAnc.length : 0);
+            console.log('ANC Dropdown innerHTML:', motherDropdown.innerHTML);
+            
+            // Test search functionality
+            if (window.allMotherOptionsAnc && window.allMotherOptionsAnc.length > 0) {
+                const firstMother = window.allMotherOptionsAnc[0];
+                console.log('First ANC mother data:', firstMother);
+                console.log('Testing search with first mother name:', firstMother.nama);
+                console.log('Testing search with first mother desa:', firstMother.desa_nama);
+                
+                const filteredByName = filterMotherOptionsAnc(firstMother.nama.substring(0, 3));
+                console.log('ANC Search results by name "' + firstMother.nama.substring(0, 3) + '":', filteredByName);
+                
+                const filteredByDesa = filterMotherOptionsAnc(firstMother.desa_nama.substring(0, 3));
+                console.log('ANC Search results by desa "' + firstMother.desa_nama.substring(0, 3) + '":', filteredByDesa);
+            }
+            
+            alert('ANC Mother dropdown test completed successfully! Check console for details.');
+        } else {
+            console.log('ANC Mother elements not found');
+            alert('ANC Mother dropdown test failed: Elements not found');
+        }
+        
+    } catch (error) {
+        console.error('Error in testMotherDropdownAnc:', error);
+        alert('ANC Mother dropdown test failed: ' + error.message);
+    }
+}
+
+// Test function to verify ANC duplicate checking
+async function testAncDuplicateCheck() {
+    console.log('=== Testing ANC duplicate checking ===');
+    try {
+        // Load existing ANC data
+        const existingAncData = await readFromSheet('ANC!A:ZZ');
+        console.log('Existing ANC data:', existingAncData);
+        
+        if (existingAncData && existingAncData.length > 1) {
+            // Skip header row
+            const dataRows = existingAncData.slice(1);
+            console.log('ANC data rows (without header):', dataRows);
+            
+            // Show first few records with their id_trx and dates
+            console.log('First 5 ANC records:');
+            for (let i = 0; i < Math.min(5, dataRows.length); i++) {
+                const row = dataRows[i];
+                console.log(`Record ${i + 1}: id_trx=${row[0]}, tanggal=${row[1]}`);
+            }
+            
+            // Check for any existing duplicates
+            const duplicates = [];
+            const seen = new Set();
+            
+            dataRows.forEach((row, index) => {
+                const key = `${row[0]}_${row[1]}`; // id_trx_tanggal
+                if (seen.has(key)) {
+                    duplicates.push({
+                        index: index + 2, // +2 because of 0-based index + header row
+                        id_trx: row[0],
+                        tanggal: row[1]
+                    });
+                } else {
+                    seen.add(key);
+                }
+            });
+            
+            if (duplicates.length > 0) {
+                console.log('Found existing duplicates:', duplicates);
+                alert(`Found ${duplicates.length} existing duplicate records! Check console for details.`);
+            } else {
+                console.log('No duplicate records found in existing data');
+                alert('ANC duplicate check test completed! No duplicates found in existing data. Check console for details.');
+            }
+        } else {
+            console.log('No ANC data found or only header row exists');
+            alert('No ANC data found to test for duplicates');
+        }
+        
+    } catch (error) {
+        console.error('Error in testAncDuplicateCheck:', error);
+        alert('ANC duplicate check test failed: ' + error.message);
+    }
+}

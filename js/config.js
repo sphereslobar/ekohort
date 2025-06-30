@@ -5,13 +5,13 @@
 // Google API configuration
 const CONFIG = {
     // Get these values from Google Cloud Console
-    apiKey: 'AIzaSyBlRbGRov5KneEy_nWmffDdRKaWQBuG0-w', // From APIs & Services > Credentials > API Keys
-    clientId: '1040492034608-klt6crk38lpo8vt9hpqauer57tsn78sb.apps.googleusercontent.com', // From APIs & Services > Credentials > OAuth 2.0 Client IDs
+    apiKey: 'AIzaSyClEl6VWwXEcut2LFSyspEscswwYNTtHDs', // From APIs & Services > Credentials > API Keys
+    clientId: '26026130940-tk7d0mpeo3531l8cfpili893j30ds9nq.apps.googleusercontent.com', // From APIs & Services > Credentials > OAuth 2.0 Client IDs
     
     // Your Google Sheet ID (from the sheet's URL)
     // Example URL: https://docs.google.com/spreadsheets/d/1234567890abcdef/edit
     // The ID would be: 1234567890abcdef
-    spreadsheetId: '11daJpEK69zVxm7HBxr23spqUTGhm2qqBLYGfr0mSBsg',
+    spreadsheetId: '1L70MCh4XzpDI6KH1q0oyRVTL9OyI2zt4EUH04oAP9mg',
     
     // Don't change these values
     apiScope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
@@ -25,8 +25,8 @@ const CONFIG = {
         persalinan: 'Persalinan!A:I',
         nifas: 'Nifas!A:J',
         anc: 'ANC!A:H',
-        relation: 'Relation!A:D',
-        users: 'Users!A:C'
+        relation: 'Relasi!A:D',
+        users: 'User!A:C'
     },
     
     // Column mappings for each sheet

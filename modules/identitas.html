@@ -1,3 +1,45 @@
+<style>
+.dusun-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.dusun-dropdown .dropdown-item {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.dusun-dropdown .dropdown-item:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.dusun-dropdown .dropdown-item.text-muted {
+    cursor: default;
+}
+
+.dusun-dropdown .dropdown-item.text-muted:hover {
+    background-color: transparent;
+}
+
+.position-relative {
+    position: relative;
+}
+</style>
+
 <div class="card">
     <div class="card-header">
         <h4 class="card-title">Data Identitas</h4>
@@ -8,10 +50,6 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label for="nik" class="form-label">NIK</label>
-                        <input type="text" class="form-control" id="nik" name="nik">
-                    </div>
-                    <div class="mb-3">
                         <label for="tahun" class="form-label">Tahun <span class="text-danger">*</span></label>
                         <select class="form-control" id="tahun" name="tahun" required>
                             <option value="">Pilih Tahun</option>
@@ -19,6 +57,8 @@
                             <option value="2025">2025</option>
                         </select>
                     </div>
+
+
                     <div class="mb-3">
                         <label for="nama_ibu" class="form-label">Nama Ibu <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="nama_ibu" name="nama_ibu" required>
@@ -26,6 +66,10 @@
                     <div class="mb-3">
                         <label for="nama_suami" class="form-label">Nama Suami</label>
                         <input type="text" class="form-control" id="nama_suami" name="nama_suami">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nik" class="form-label">NIK</label>
+                        <input type="text" class="form-control" id="nik" name="nik">
                     </div>
                     <div class="mb-3">
                         <label for="alamat" class="form-label">Alamat</label>
@@ -50,10 +94,7 @@
                         <label for="usia_ibu" class="form-label">Usia Ibu</label>
                         <input type="number" class="form-control" id="usia_ibu" name="usia_ibu">
                     </div>
-                    <div class="mb-3">
-                        <label for="dusun" class="form-label">Dusun</label>
-                        <input type="text" class="form-control" id="dusun" name="dusun">
-                    </div>
+
                     <div class="mb-3">
                         <label for="kabupaten" class="form-label">Kabupaten <span class="text-danger">*</span></label>
                         <select class="form-control" id="kabupaten" name="kabupaten" required>
@@ -72,10 +113,23 @@
                             <option value="">Pilih Desa/Kelurahan</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="dusun" class="form-label">Dusun</label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="dusun" name="dusun" 
+                                   placeholder="Ketik untuk mencari atau klik untuk melihat semua..." 
+                                   autocomplete="off" readonly>
+                            <div class="dusun-dropdown" id="dusunDropdown" style="display: none;">
+                                <div class="dropdown-item text-muted">Pilih Desa terlebih dahulu</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="dusun_code" name="dusun_code">
+                    </div>                    
                 </div>
             </div>
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                 <button type="button" class="btn btn-info" onclick="manualInitWilayah()">Init Wilayah</button>
+                
                 <button type="button" class="btn btn-secondary" onclick="clearIdentitasForm()">Reset</button>
                 <button type="button" class="btn btn-primary" onclick="testFormSave()">Simpan Data</button>
             </div>
@@ -97,6 +151,7 @@
                         <th>Nama Ibu</th>
                         <th>Nama Suami</th>
                         <th>Alamat</th>
+                        <th>Dusun</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -137,6 +192,10 @@ function initIdentitas() {
             try {
                 await initWilayahDropdowns();
                 console.log('Wilayah dropdowns initialized successfully');
+                
+                // Initialize dusun dropdown functionality
+                await initDusunDropdown();
+                console.log('Dusun dropdown initialized successfully');
             } catch (error) {
                 console.error('Error initializing wilayah dropdowns:', error);
             }
@@ -210,10 +269,335 @@ function populateFormFromURL() {
             console.error('populateWilayahDropdowns function not available');
         }
     }
+    
+    // Handle dusun field from URL
+    const dusunValue = urlParams.get('dusun');
+    const dusunCodeValue = urlParams.get('dusun_code');
+    
+    if (dusunValue || dusunCodeValue) {
+        setTimeout(() => {
+            if (dusunValue) {
+                const dusunField = document.getElementById('dusun');
+                if (dusunField) {
+                    dusunField.value = dusunValue;
+                    console.log(`Populated dusun display with value:`, dusunValue);
+                }
+            }
+            if (dusunCodeValue) {
+                const dusunCodeField = document.getElementById('dusun_code');
+                if (dusunCodeField) {
+                    dusunCodeField.value = dusunCodeValue;
+                    console.log(`Populated dusun code with value:`, dusunCodeValue);
+                }
+            }
+        }, 2000); // Wait for dusun dropdown to be populated
+    }
+}
+
+// Function to load dusun data from the Dusun sheet
+async function loadDusunData() {
+    try {
+        console.log('=== Loading dusun data ===');
+        console.log('Sheets initialized:', sheetsInitialized);
+        console.log('GAPI available:', !!gapi);
+        console.log('GAPI client available:', !!gapi?.client);
+        console.log('GAPI sheets available:', !!gapi?.client?.sheets);
+        
+        const dusunData = await readFromSheet('Dusun!A:D');
+        console.log('Raw dusun data:', dusunData);
+        
+        if (!dusunData || dusunData.length <= 1) {
+            console.log('No dusun data found or only header row exists');
+            console.log('Data length:', dusunData ? dusunData.length : 'null');
+            return [];
+        }
+        
+        // Skip header row and return data
+        const dataWithoutHeader = dusunData.slice(1);
+        console.log('Dusun data without header:', dataWithoutHeader);
+        console.log('Number of dusun records:', dataWithoutHeader.length);
+        
+        return dataWithoutHeader;
+    } catch (error) {
+        console.error('=== Error loading dusun data ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        return [];
+    }
+}
+
+// Function to load dusun dropdown based on selected desa
+async function loadDusunDropdown(selectedDesaKode) {
+    try {
+        console.log('=== Loading dusun dropdown ===');
+        console.log('Selected desa kode:', selectedDesaKode);
+        
+        const dusunData = await loadDusunData();
+        const dusunInput = document.getElementById('dusun');
+        const dusunDropdown = document.getElementById('dusunDropdown');
+        const dusunCodeInput = document.getElementById('dusun_code');
+        
+        if (!dusunInput || !dusunDropdown) {
+            console.log('Dusun elements not found');
+            return;
+        }
+        
+        // Store all dusun options globally for search functionality
+        window.allDusunOptions = [];
+        
+        // Clear existing content
+        dusunDropdown.innerHTML = '';
+        dusunInput.value = '';
+        dusunCodeInput.value = '';
+        dusunInput.placeholder = 'Ketik untuk mencari atau klik untuk melihat semua...';
+        dusunInput.removeAttribute('readonly');
+        
+        if (dusunData.length > 0 && selectedDesaKode) {
+            console.log('Processing dusun data for desa:', selectedDesaKode);
+            
+            // Filter by selected desa (BPS Kode Desa Kelurahan in column 1, index 1)
+            const filteredData = dusunData.filter(row => {
+                const desaKodeFromDusun = row[1]; // BPS Kode Desa Kelurahan
+                console.log(`Comparing desa codes: ${desaKodeFromDusun} === ${selectedDesaKode}`);
+                return desaKodeFromDusun === selectedDesaKode;
+            });
+            
+            console.log('Filtered dusun data:', filteredData);
+            
+            // Get unique dusun for selected desa
+            const uniqueDusun = [];
+            filteredData.forEach((row, index) => {
+                console.log(`Processing dusun row ${index}:`, row);
+                const kodeDusun = row[2]; // Kode Dusun
+                const namaDusun = row[3]; // Nama Dusun
+                
+                console.log(`Row ${index} - Kode: ${kodeDusun}, Nama: ${namaDusun}`);
+                
+                if (!uniqueDusun.find(d => d.kode === kodeDusun)) {
+                    uniqueDusun.push({
+                        kode: kodeDusun,
+                        nama: namaDusun
+                    });
+                    console.log(`Added unique dusun: ${namaDusun} (${kodeDusun})`);
+                } else {
+                    console.log(`Skipped duplicate dusun: ${namaDusun} (${kodeDusun})`);
+                }
+            });
+            
+            console.log('Unique dusun found:', uniqueDusun);
+            
+            // Sort by nama
+            uniqueDusun.sort((a, b) => a.nama.localeCompare(b.nama));
+            
+            // Store for search functionality
+            window.allDusunOptions = uniqueDusun;
+            
+            // Render dropdown items
+            renderDusunDropdown(uniqueDusun);
+            
+            console.log(`Loaded ${uniqueDusun.length} dusun options for desa ${selectedDesaKode}`);
+        } else {
+            console.log('No dusun data to process or no desa selected');
+            dusunDropdown.innerHTML = '<div class="dropdown-item text-muted">Pilih Desa terlebih dahulu</div>';
+            dusunInput.setAttribute('readonly', 'true');
+            dusunInput.placeholder = 'Pilih Desa terlebih dahulu';
+            window.allDusunOptions = [];
+        }
+    } catch (error) {
+        console.error('=== Error loading dusun dropdown ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+    }
+}
+
+// Function to render dusun dropdown items
+function renderDusunDropdown(dusunOptions) {
+    const dusunDropdown = document.getElementById('dusunDropdown');
+    
+    if (!dusunDropdown) return;
+    
+    if (dusunOptions.length === 0) {
+        dusunDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada dusun ditemukan</div>';
+        return;
+    }
+    
+    // Clear existing content
+    dusunDropdown.innerHTML = '';
+    
+    // Add dropdown items
+    dusunOptions.forEach(dusun => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.style.cursor = 'pointer';
+        item.textContent = dusun.nama;
+        item.dataset.code = dusun.kode;
+        item.dataset.name = dusun.nama;
+        
+        // Add click event
+        item.addEventListener('click', function() {
+            selectDusun(dusun.kode, dusun.nama);
+        });
+        
+        dusunDropdown.appendChild(item);
+    });
+}
+
+// Function to select a dusun
+function selectDusun(code, name) {
+    const dusunInput = document.getElementById('dusun');
+    const dusunCodeInput = document.getElementById('dusun_code');
+    const dusunDropdown = document.getElementById('dusunDropdown');
+    
+    dusunInput.value = name;
+    dusunCodeInput.value = code;
+    dusunDropdown.style.display = 'none';
+    
+    console.log('Selected dusun:', { code, name });
+}
+
+// Function to filter dusun options based on search
+function filterDusunOptions(searchTerm) {
+    if (!window.allDusunOptions) {
+        return [];
+    }
+    
+    if (!searchTerm || searchTerm.trim() === '') {
+        return window.allDusunOptions;
+    }
+    
+    const term = searchTerm.toLowerCase().trim();
+    return window.allDusunOptions.filter(dusun => 
+        dusun.nama.toLowerCase().includes(term)
+    );
+}
+
+// Function to initialize dusun dropdown functionality
+async function initDusunDropdown() {
+    console.log('=== Initializing dusun dropdown ===');
+    
+    const dusunInput = document.getElementById('dusun');
+    const dusunDropdown = document.getElementById('dusunDropdown');
+    const dusunCodeInput = document.getElementById('dusun_code');
+    const desaSelect = document.getElementById('desa');
+    
+    // Add event listener to desa dropdown to trigger dusun loading
+    if (desaSelect) {
+        desaSelect.addEventListener('change', async (e) => {
+            const selectedDesaKode = e.target.value;
+            console.log('Desa selected for dusun loading:', selectedDesaKode);
+            
+            // Clear dusun fields
+            if (dusunInput) {
+                dusunInput.value = '';
+                dusunInput.setAttribute('readonly', 'true');
+                dusunInput.placeholder = 'Memuat data dusun...';
+            }
+            if (dusunCodeInput) {
+                dusunCodeInput.value = '';
+            }
+            if (dusunDropdown) {
+                dusunDropdown.style.display = 'none';
+                dusunDropdown.innerHTML = '<div class="dropdown-item text-muted">Memuat...</div>';
+            }
+            
+            if (selectedDesaKode) {
+                await loadDusunDropdown(selectedDesaKode);
+            } else {
+                // Reset to default state when no desa selected
+                if (dusunInput) {
+                    dusunInput.placeholder = 'Pilih Desa terlebih dahulu';
+                }
+                if (dusunDropdown) {
+                    dusunDropdown.innerHTML = '<div class="dropdown-item text-muted">Pilih Desa terlebih dahulu</div>';
+                }
+            }
+        });
+        console.log('Desa dropdown event listener added for dusun');
+    } else {
+        console.log('Desa select element not found');
+    }
+    
+    // Add search functionality to dusun input
+    if (dusunInput) {
+        // Focus event - show dropdown
+        dusunInput.addEventListener('focus', function() {
+            if (window.allDusunOptions && window.allDusunOptions.length > 0) {
+                dusunDropdown.style.display = 'block';
+                renderDusunDropdown(window.allDusunOptions);
+            }
+        });
+        
+        // Input event - search as user types
+        dusunInput.addEventListener('input', function() {
+            const searchTerm = this.value;
+            const filteredOptions = filterDusunOptions(searchTerm);
+            
+            if (filteredOptions.length > 0) {
+                dusunDropdown.style.display = 'block';
+                renderDusunDropdown(filteredOptions);
+            } else {
+                dusunDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada dusun ditemukan</div>';
+                dusunDropdown.style.display = 'block';
+            }
+            
+            // Clear hidden code if user is typing (not selecting)
+            if (dusunCodeInput) {
+                dusunCodeInput.value = '';
+            }
+        });
+        
+        // Click event - show all options
+        dusunInput.addEventListener('click', function() {
+            if (window.allDusunOptions && window.allDusunOptions.length > 0) {
+                dusunDropdown.style.display = 'block';
+                renderDusunDropdown(window.allDusunOptions);
+            }
+        });
+        
+        console.log('Dusun input event listeners added');
+    }
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (dusunInput && dusunDropdown) {
+            const isClickInsideDusun = dusunInput.contains(event.target) || 
+                                      dusunDropdown.contains(event.target) ||
+                                      event.target === dusunInput;
+            
+            if (!isClickInsideDusun) {
+                dusunDropdown.style.display = 'none';
+            }
+        }
+    });
+    
+    console.log('Dusun dropdown initialization completed');
 }
 
 function clearIdentitasForm() {
     document.getElementById('identitasForm').reset();
+    
+    // Clear the custom dusun fields
+    const dusunInput = document.getElementById('dusun');
+    const dusunCodeInput = document.getElementById('dusun_code');
+    const dusunDropdown = document.getElementById('dusunDropdown');
+    
+    if (dusunInput) {
+        dusunInput.value = '';
+        dusunInput.setAttribute('readonly', 'true');
+        dusunInput.placeholder = 'Pilih Desa terlebih dahulu';
+    }
+    if (dusunCodeInput) {
+        dusunCodeInput.value = '';
+    }
+    if (dusunDropdown) {
+        dusunDropdown.style.display = 'none';
+        dusunDropdown.innerHTML = '<div class="dropdown-item text-muted">Pilih Desa terlebih dahulu</div>';
+    }
+    
+    // Clear the global dusun options
+    window.allDusunOptions = [];
 }
 
 async function saveIdentitasData() {
@@ -263,7 +647,7 @@ async function saveIdentitasData() {
         }
         
         // Get all field values with error handling
-        const fieldIds = ['nik', 'tahun', 'nama_ibu', 'nama_suami', 'alamat', 'sumber_pembiayaan', 'no_pembiayaan', 'usia_ibu', 'dusun', 'kabupaten', 'kecamatan', 'desa'];
+        const fieldIds = ['nik', 'tahun', 'nama_ibu', 'nama_suami', 'alamat', 'sumber_pembiayaan', 'no_pembiayaan', 'usia_ibu', 'dusun_code', 'kabupaten', 'kecamatan', 'desa'];
         const formData = [];
         
         for (const fieldId of fieldIds) {
@@ -285,9 +669,10 @@ async function saveIdentitasData() {
         // Validate that all required fields are filled
         const requiredFields = formData.slice(0, -1); // Exclude timestamp
         const emptyFields = [];
+        const fieldNames = ['NIK', 'Tahun', 'Nama Ibu', 'Nama Suami', 'Alamat', 'Sumber Pembiayaan', 'Nomor Pembiayaan', 'Usia Ibu', 'Dusun', 'Kabupaten', 'Kecamatan', 'Desa'];
+        
         requiredFields.forEach((value, index) => {
             if (!value || value.trim() === '') {
-                const fieldNames = ['NIK', 'Tahun', 'Nama Ibu', 'Nama Suami', 'Alamat', 'Sumber Pembiayaan', 'Nomor Pembiayaan', 'Usia Ibu', 'Dusun', 'Kabupaten', 'Kecamatan', 'Desa'];
                 emptyFields.push(fieldNames[index]);
             }
         });
@@ -380,6 +765,7 @@ async function loadIdentitasData() {
                     <td>${row[2] || ''}</td>
                     <td>${row[3] || ''}</td>
                     <td>${row[4] || ''}</td>
+                    <td>${row[8] || ''}</td>
                     <td>
                         <button class="btn btn-sm btn-danger" onclick="deleteIdentitas('${row[row.length - 1]}')">
                             Hapus
@@ -391,7 +777,7 @@ async function loadIdentitasData() {
             console.log('Table HTML updated successfully');
         } else {
             console.log('No data found, showing empty message');
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Belum ada data identitas</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Belum ada data identitas</td></tr>';
         }
     } catch (error) {
         console.error('=== Error in loadIdentitasData ===');
@@ -401,7 +787,7 @@ async function loadIdentitasData() {
         
         const tableBody = document.getElementById('identitasTableBody');
         if (tableBody) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error loading data: ${error.message}</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Error loading data: ${error.message}</td></tr>`;
         }
     }
 }
@@ -544,6 +930,13 @@ window.clearIdentitasForm = clearIdentitasForm;
 window.testFormSave = testFormSave;
 window.ensureUserAuthenticated = ensureUserAuthenticated;
 window.populateFormFromURL = populateFormFromURL;
+window.loadDusunData = loadDusunData;
+window.loadDusunDropdown = loadDusunDropdown;
+window.initDusunDropdown = initDusunDropdown;
+window.renderDusunDropdown = renderDusunDropdown;
+window.selectDusun = selectDusun;
+window.filterDusunOptions = filterDusunOptions;
+window.testDusunLoading = testDusunLoading;
 
 // Direct form submission handler - this will work immediately
 document.addEventListener('DOMContentLoaded', function() {
@@ -785,6 +1178,57 @@ async function testSimpleAppend() {
     } catch (error) {
         console.error('Simple test failed:', error);
         alert('Simple test failed: ' + error.message);
+    }
+}
+
+// Test function for Dusun functionality
+async function testDusunLoading() {
+    console.log('=== Testing dusun loading ===');
+    try {
+        console.log('Testing loadDusunData...');
+        const dusunData = await loadDusunData();
+        console.log('Dusun data result:', dusunData);
+        console.log('Number of dusun records:', dusunData.length);
+        
+        if (dusunData.length > 0) {
+            console.log('First dusun record:', dusunData[0]);
+            
+            // Get a sample desa code from the data
+            const sampleDesaCode = dusunData[0][1]; // BPS Kode Desa Kelurahan
+            console.log('Testing loadDusunDropdown with desa code:', sampleDesaCode);
+            
+            await loadDusunDropdown(sampleDesaCode);
+            console.log('Dusun dropdown loaded for desa:', sampleDesaCode);
+            
+            const dusunInput = document.getElementById('dusun');
+            const dusunDropdown = document.getElementById('dusunDropdown');
+            
+            if (dusunInput && dusunDropdown) {
+                console.log('Dusun input element found:', !!dusunInput);
+                console.log('Dusun dropdown element found:', !!dusunDropdown);
+                console.log('Global dusun options count:', window.allDusunOptions ? window.allDusunOptions.length : 0);
+                console.log('Dropdown innerHTML:', dusunDropdown.innerHTML);
+                
+                // Test search functionality
+                if (window.allDusunOptions && window.allDusunOptions.length > 0) {
+                    const firstDusun = window.allDusunOptions[0];
+                    console.log('Testing search with first dusun:', firstDusun.nama);
+                    
+                    const filtered = filterDusunOptions(firstDusun.nama.substring(0, 3));
+                    console.log('Search results for "' + firstDusun.nama.substring(0, 3) + '":', filtered);
+                }
+            } else {
+                console.log('Dusun elements not found');
+            }
+            
+            alert('Dusun test completed successfully! Check console for details.');
+        } else {
+            alert('No dusun data found in the sheet. Please check if the Dusun sheet exists and has data.');
+        }
+        
+    } catch (error) {
+        console.error('Error in testDusunLoading:', error);
+        alert('Dusun test failed: ' + error.message);
     }
 }
 </script> 

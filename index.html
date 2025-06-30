@@ -37,7 +37,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item" id="loginButton">
                         <div id="g_id_onload"
-                             data-client_id="1040492034608-klt6crk38lpo8vt9hpqauer57tsn78sb.apps.googleusercontent.com"
+                             data-client_id=""
                              data-context="signin"
                              data-ux_mode="popup"
                              data-callback="handleCredentialResponse"
@@ -80,6 +80,12 @@
 
         // Check for saved session on page load
         document.addEventListener('DOMContentLoaded', async () => {
+            // Set the client ID from config
+            const gIdOnload = document.getElementById('g_id_onload');
+            if (gIdOnload) {
+                gIdOnload.setAttribute('data-client_id', CONFIG.clientId);
+            }
+            
             const savedToken = localStorage.getItem('googleAccessToken');
             const savedProfile = localStorage.getItem('userProfile');
             
@@ -116,7 +122,7 @@
 
         function getAccessToken() {
             tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: '1040492034608-klt6crk38lpo8vt9hpqauer57tsn78sb.apps.googleusercontent.com',
+                client_id: CONFIG.clientId,
                 scope: 'https://www.googleapis.com/auth/spreadsheets',
                 callback: async (response) => {
                     if (response.access_token) {
