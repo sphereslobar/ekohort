@@ -150,6 +150,7 @@
                                 <th>HBsAg</th>
                                 <th>TBC Mikroskopis</th>
                                 <th>Malaria</th>
+                                <th>Lain-lain</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -190,19 +191,21 @@ async function saveLaboratoriumData() {
             }
         }
         
-        const formData = [
-            document.getElementById('lab_hb').value,
-            document.getElementById('golda').value,
-            document.getElementById('protein_urin').value,
-            document.getElementById('glukosa_urin').value,
-            document.getElementById('hiv').value,
-            document.getElementById('sifilis').value,
-            document.getElementById('hbsag').value,
-            document.getElementById('tbc_mikroskopis').value,
-            document.getElementById('malaria').value,
-            document.getElementById('lain_lain').value,
-            new Date().toISOString()
-        ];
+        // Create form data object that matches the expected column structure
+        const formData = {
+            lab_hb: document.getElementById('lab_hb').value,
+            golda: document.getElementById('golda').value,
+            protein_urin: document.getElementById('protein_urin').value,
+            glukosa_urin: document.getElementById('glukosa_urin').value,
+            hiv: document.getElementById('hiv').value,
+            sifilis: document.getElementById('sifilis').value,
+            hbsag: document.getElementById('hbsag').value,
+            tbc_mikroskopis: document.getElementById('tbc_mikroskopis').value,
+            malaria: document.getElementById('malaria').value,
+            lain_lain: document.getElementById('lain_lain').value
+        };
+        
+        console.log('Form data to save:', formData);
         
         await appendUserDataToSheet('Laboratorium', formData);
         alert('Data laboratorium berhasil disimpan!');
@@ -222,41 +225,33 @@ async function loadLaboratoriumData() {
         const tableBody = document.getElementById('laboratoriumTableBody');
         
         if (data && data.length > 0) {
-            tableBody.innerHTML = data.map((row, index) => `
+            tableBody.innerHTML = data.map((row, index) => {
+                const idTrx = row[row.length - 1]; // id_trx is in the last column
+                return `
                 <tr>
-                    <td>${row[0] || ''}</td>
-                    <td>${row[1] || ''}</td>
-                    <td>${row[2] || ''}</td>
-                    <td>${row[3] || ''}</td>
-                    <td>${row[4] || ''}</td>
-                    <td>${row[5] || ''}</td>
-                    <td>${row[6] || ''}</td>
-                    <td>${row[7] || ''}</td>
-                    <td>${row[8] || ''}</td>
+                    <td>${row[1] || ''}</td>  <!-- lab_hb -->
+                    <td>${row[2] || ''}</td>  <!-- golda -->
+                    <td>${row[3] || ''}</td>  <!-- protein_urin -->
+                    <td>${row[4] || ''}</td>  <!-- glukosa_urin -->
+                    <td>${row[5] || ''}</td>  <!-- hiv -->
+                    <td>${row[6] || ''}</td>  <!-- sifilis -->
+                    <td>${row[7] || ''}</td>  <!-- hbsag -->
+                    <td>${row[8] || ''}</td>  <!-- tbc_mikroskopis -->
+                    <td>${row[9] || ''}</td>  <!-- malaria -->
+                    <td>${row[10] || ''}</td>  <!-- lain_lain -->
                     <td>
-                        <button class="btn btn-sm btn-danger" onclick="deleteLaboratorium(${index + 2})">
+                        <button class="btn btn-sm btn-danger" onclick="deleteLaboratorium('${idTrx}')">
                             Hapus
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
         } else {
-            tableBody.innerHTML = '<tr><td colspan="10" class="text-center">Belum ada data laboratorium</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="11" class="text-center">Belum ada data laboratorium</td></tr>';
         }
     } catch (error) {
         console.error('Error loading data:', error);
-    }
-}
-
-async function deleteLaboratorium(rowIndex) {
-    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-        try {
-            await writeToSheet(`laboratorium!A${rowIndex}:M${rowIndex}`, [['', '', '', '', '', '', '', '', '', '', '', '', '']]);
-            loadLaboratoriumData();
-        } catch (error) {
-            console.error('Error deleting data:', error);
-            alert('Gagal menghapus data: ' + error.message);
-        }
     }
 }
 </script> 

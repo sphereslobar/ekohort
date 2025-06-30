@@ -304,15 +304,28 @@ async function appendUserDataToSheet(sheetName, formData, isIdentitas = false) {
         const relasiInfo = await createRelasiRecord();
         console.log('Created relasi info:', relasiInfo);
         
+        // Convert formData object to array using column mapping
+        let dataArray;
+        if (typeof formData === 'object' && !Array.isArray(formData)) {
+            // If formData is an object, convert it to array using column mapping
+            const columns = CONFIG.columns[sheetName];
+            dataArray = columns.map(column => formData[column] || '');
+            console.log('Converted object to array:', dataArray);
+        } else {
+            // If formData is already an array, use it as is
+            dataArray = formData;
+            console.log('Using formData as array:', dataArray);
+        }
+        
         // Add the appropriate relasi reference to the data
         let dataWithRelasi;
         if (isIdentitas) {
             // For Identitas, add relasi id
-            dataWithRelasi = [...formData, relasiInfo.id];
+            dataWithRelasi = [...dataArray, relasiInfo.id];
             console.log('Data with relasi ID for identitas:', dataWithRelasi);
         } else {
             // For other tables, add id_trx
-            dataWithRelasi = [...formData, relasiInfo.id_trx];
+            dataWithRelasi = [...dataArray, relasiInfo.id_trx];
             console.log('Data with id_trx for other tables:', dataWithRelasi);
         }
         
